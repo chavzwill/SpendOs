@@ -63,7 +63,7 @@ test('different event id at same source version is a conflict', () => {
   assert.equal(ingestEvent(db, event(1, 'evt-b')).status, 'conflict');
 });
 
-test('newer version appends history and updates supplier pricing', () => {
+test('newer revision updates current supplier pricing without double-counting history', () => {
   const db = freshDb();
   ingestEvent(db, event(1, 'evt-1'));
   const v2 = event(2, 'evt-2');
@@ -71,6 +71,24 @@ test('newer version appends history and updates supplier pricing', () => {
   v2.payload.items[0].lineTotal = 52000;
   assert.equal(ingestEvent(db, v2).status, 'accepted');
   const history = supplierPriceHistory(db, 'total-tools', 'ABC');
-  assert.equal(history.length, 2);
+  assert.equal(history.length, 1);
   assert.equal(history[0].unit_amount, 13000);
+  assert.equal(db.prepare('SELECT COUNT(*) c FROM spend_events').get().c, 2);
+});
+
+test('latest source version replaces prior requested-spend projection', () => {
+  const db = freshDb();
+  const v1 = event(1, 'rev-1');
+  v1.payload.items[0].lineTotal = 100;
+  v1.payload.items[0].unitCost = 25;
+  v1.payload.items[0].quantity = 4;
+  const v2 = event(2, 'rev-2');
+  v2.payload.items[0].lineTotal = 150;
+  v2.payload.items[0].unitCost = 30;
+  v2.payload.items[0].quantity = 5;
+  ingestEvent(db, v1);
+  ingestEvent(db, v2);
+  const snapshot = managementSnapshot(db, 'total-tools');
+  assert.equal(snapshot.requested, 150);
+  assert.equal(db.prepare('SELECT COUNT(*) c FROM spend_events').get().c, 2);
 });

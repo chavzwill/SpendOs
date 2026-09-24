@@ -2,6 +2,8 @@ const http = require('http');
 const { openStore } = require('./store');
 const { ingestEvent } = require('./ingest');
 const { managementSnapshot, supplierPriceHistory } = require('./analytics');
+const { runSavingsEngine } = require('./engine');
+const { upsertBudget } = require('./budgets');
 
 const port = Number(process.env.PORT || 4010);
 const apiKey = process.env.SPENDOS_API_KEY || '';
@@ -54,6 +56,26 @@ const server = http.createServer((req, res) => {
       decodeURIComponent(priceMatch[1]),
       decodeURIComponent(priceMatch[2])
     ));
+  }
+
+  const savingsMatch = req.url.match(/^\/v1\/savings\/run\?tenantId=([^&]+)$/);
+  if (req.method === 'POST' && savingsMatch) {
+    return send(res, 200, runSavingsEngine(db, decodeURIComponent(savingsMatch[1])));
+  }
+
+  if (req.method === 'POST' && req.url === '/v1/budgets') {
+    let body = '';
+    req.on('data', chunk => { body += chunk; });
+    req.on('end', () => {
+      try {
+        const budget = JSON.parse(body || '{}');
+        upsertBudget(db, budget);
+        send(res, 201, { status: 'saved' });
+      } catch (error) {
+        send(res, 400, { error: error.message });
+      }
+    });
+    return;
   }
 
   send(res, 404, { error: 'not_found' });

@@ -6,6 +6,6 @@
   "scripts": {
     "start": "node src/server.js",
     "test": "node --test tests/*.test.js",
-    "check": "node --check src/server.js && node --check src/store.js && node --check src/ingest.js && npm test"
+    "check": "node --check src/server.js && node --check src/store.js && node --check src/ingest.js && node --check src/analytics.js && node --check src/opportunities.js && node --check src/savings.js && node --check src/budgets.js && node --check src/engine.js && npm test"
   }
 }
