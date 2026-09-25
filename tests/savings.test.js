@@ -7,7 +7,7 @@ const { ingestEvent } = require('../src/ingest');
 const { runSavingsEngine } = require('../src/engine');
 const { upsertBudget } = require('../src/budgets');
 const { recordAction, verifyOpportunity, opportunityLifecycle, verifiedSavingsRollup } = require('../src/savings-lifecycle');
-const { upsertSavingsTarget, savingsTargetPerformance } = require('../src/savings-targets');
+const { upsertSavingsTarget, savingsTargetPerformance, savingsAccountabilityAttention } = require('../src/savings-targets');
 
 function freshDb() {
   const db = new DatabaseSync(':memory:');
@@ -217,4 +217,26 @@ test('savings target validation rejects invalid periods and negative goals', () 
   const db=freshDb();
   assert.throws(()=>upsertSavingsTarget(db,'total-tools',{scopeType:'company',scopeId:'all',currency:'JMD',periodStart:'2026-10-01',periodEnd:'2026-09-01',targetAmount:100}),/Valid savings target period/);
   assert.throws(()=>upsertSavingsTarget(db,'total-tools',{scopeType:'company',scopeId:'all',currency:'JMD',periodStart:'2026-09-01',periodEnd:'2026-09-30',targetAmount:-1}),/non-negative/);
+});
+
+test('savings accountability attention flags missing owner and behind elapsed pace without forecasting', () => {
+  const db=freshDb();
+  upsertSavingsTarget(db,'total-tools',{scopeType:'company',scopeId:'all',currency:'JMD',periodStart:'2026-09-01T00:00:00.000Z',periodEnd:'2026-09-30T23:59:59.999Z',targetAmount:300,ownerId:null});
+  const attention=savingsAccountabilityAttention(db,'total-tools','2026-09-20T12:00:00.000Z');
+  assert.equal(attention.methodology.forecast,false);
+  assert.ok(attention.items.some(x=>x.kind==='target_owner_missing'));
+  assert.ok(attention.items.some(x=>x.kind==='target_behind_elapsed_pace'));
+});
+
+test('savings accountability attention flags ended target and aged unverified action', () => {
+  const db=freshDb();
+  upsertSavingsTarget(db,'total-tools',{scopeType:'company',scopeId:'all',currency:'JMD',periodStart:'2026-08-01T00:00:00.000Z',periodEnd:'2026-08-31T23:59:59.999Z',targetAmount:500,ownerId:'9'});
+  ingestEvent(db,purchase({id:'aa1',sourceRecordId:'aa1',supplierId:'S1',unitCost:140,occurredAt:'2026-09-01T10:00:00.000Z'}));
+  ingestEvent(db,purchase({id:'aa2',sourceRecordId:'aa2',supplierId:'S2',unitCost:100,occurredAt:'2026-09-02T10:00:00.000Z'}));
+  const result=runSavingsEngine(db,'total-tools',{supplierAlternatives:{minPct:3}});
+  const op=result.opportunities.find(x=>x.kind==='supplier_alternative');
+  recordAction(db,'total-tools',op.id,{actionType:'switch_supplier',actionNote:'Use S2',actorId:'9',effectiveAt:'2026-09-03T00:00:00.000Z'});
+  const attention=savingsAccountabilityAttention(db,'total-tools','2026-09-25T12:00:00.000Z');
+  assert.ok(attention.items.some(x=>x.kind==='target_period_ended_below_goal'));
+  assert.ok(attention.items.some(x=>x.kind==='action_verification_due'&&x.opportunityId===op.id));
 });

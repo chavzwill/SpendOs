@@ -66,3 +66,52 @@ function savingsTargetPerformance(db, tenantId) {
 }
 
 module.exports.savingsTargetPerformance=savingsTargetPerformance;
+
+function savingsAccountabilityAttention(db, tenantId, asOf=new Date().toISOString()) {
+  const now=new Date(asOf);
+  const targetPerformance=savingsTargetPerformance(db,tenantId);
+  const items=[];
+  for(const target of targetPerformance) {
+    const start=new Date(target.period_start),end=new Date(target.period_end);
+    const duration=Math.max(1,end-start);
+    const elapsed=Math.max(0,Math.min(1,(now-start)/duration));
+    const expectedToDate=Number((Number(target.target_amount||0)*elapsed).toFixed(2));
+    if(!target.owner_id) {
+      items.push({kind:'target_owner_missing',priority:'high',targetId:target.id,scopeType:target.scope_type,scopeId:target.scope_id,currency:target.currency,reason:'Savings target has no accountable owner.'});
+    }
+    if(now>end && Number(target.verified_savings||0)<Number(target.target_amount||0)) {
+      items.push({kind:'target_period_ended_below_goal',priority:'high',targetId:target.id,scopeType:target.scope_type,scopeId:target.scope_id,currency:target.currency,
+        targetAmount:Number(target.target_amount||0),verifiedSavings:Number(target.verified_savings||0),gap:Number(target.gap||0),reason:'Target period ended before the verified savings goal was reached.'});
+    } else if(now>=start && now<=end && elapsed>=0.25 && Number(target.target_amount||0)>0) {
+      const verified=Number(target.verified_savings||0);
+      const paceRatio=expectedToDate>0?verified/expectedToDate:1;
+      if(paceRatio<0.75) {
+        items.push({kind:'target_behind_elapsed_pace',priority:'medium',targetId:target.id,scopeType:target.scope_type,scopeId:target.scope_id,currency:target.currency,
+          elapsedPct:Number((elapsed*100).toFixed(1)),expectedToDate,verifiedSavings:verified,reason:'Verified savings are materially below the simple elapsed-period pace. This is a pacing signal, not a forecast.'});
+      }
+    }
+  }
+
+  const actioned=db.prepare(`SELECT o.id opportunity_id,o.kind,o.currency,a.id action_id,a.effective_at,a.actor_id,a.action_type,
+    MAX(v.created_at) last_verification_at
+    FROM savings_opportunities o
+    JOIN savings_opportunity_actions a ON a.opportunity_id=o.id
+    LEFT JOIN savings_verifications v ON v.opportunity_id=o.id AND datetime(v.created_at)>=datetime(a.effective_at)
+    WHERE o.tenant_id=? AND o.status='actioned'
+      AND a.id=(SELECT id FROM savings_opportunity_actions a2 WHERE a2.opportunity_id=o.id ORDER BY a2.effective_at DESC,a2.id DESC LIMIT 1)
+    GROUP BY o.id,a.id`).all(tenantId);
+  for(const row of actioned) {
+    const ageDays=(now-new Date(row.effective_at))/86400000;
+    if(ageDays>=14 && !row.last_verification_at) {
+      items.push({kind:'action_verification_due',priority:'medium',opportunityId:row.opportunity_id,actionId:row.action_id,actionType:row.action_type,
+        currency:row.currency,ageDays:Number(ageDays.toFixed(1)),ownerId:row.actor_id||null,
+        reason:'A savings action has been in effect for at least 14 days without a verification attempt. Review whether sufficient actual receipt evidence now exists.'});
+    }
+  }
+  const order={high:0,medium:1,low:2};
+  items.sort((a,b)=>(order[a.priority]??9)-(order[b.priority]??9));
+  return {asOf,items,summary:{total:items.length,high:items.filter(x=>x.priority==='high').length,medium:items.filter(x=>x.priority==='medium').length},
+    methodology:{forecast:false,paceSignal:'Elapsed-period pace is a review prompt only; it does not predict future savings.',verificationReviewDays:14}};
+}
+
+module.exports.savingsAccountabilityAttention=savingsAccountabilityAttention;
