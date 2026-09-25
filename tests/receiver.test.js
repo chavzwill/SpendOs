@@ -5,7 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const { ingestEvent } = require('../src/ingest');
 const { managementSnapshot, supplierPriceHistory } = require('../src/analytics');
-const { targetCostSummary } = require('../src/cost-economics');
+const { targetCostSummary, targetPortfolio, allocationCoverage } = require('../src/cost-economics');
 
 function freshDb() {
   const db = new DatabaseSync(':memory:');
@@ -150,4 +150,44 @@ test('purchase receipt becomes actual target cost without replacing request inte
   const summary=targetCostSummary(db,'total-tools','rental_asset','88');
   assert.equal(summary.requestedCost,1000);
   assert.equal(summary.actualCost,400);
+});
+
+test('company expenditure and internal consumption are not double-counted', () => {
+  const db=freshDb();
+  ingestEvent(db,{
+    id:'recv-global',type:'purchase.received',occurredAt:'2026-09-25T01:00:00.000Z',
+    tenantId:'total-tools',source:'total-tools-pos',sourceRecordId:'801',sourceVersion:1,
+    payload:{supplierId:'5',currency:'JMD',items:[{sku:'OIL',description:'Oil',quantity:10,unitCost:100,lineCost:1000,allocations:[]}]}
+  });
+  ingestEvent(db,{
+    id:'consume-global',type:'consumable.issued',occurredAt:'2026-09-25T02:00:00.000Z',
+    tenantId:'total-tools',source:'total-tools-pos',sourceRecordId:'802',sourceVersion:1,
+    payload:{currency:'JMD',items:[{sku:'OIL',productName:'Oil',quantity:4,trackedValue:400,valuationStatus:'fully_valued',
+      allocations:[{targetType:'vehicle',targetId:'3',targetLabel:'Truck 3',amount:400,quantity:4,percent:100,expenseCategory:'lubricants',valuationStatus:'fully_valued'}]}]}
+  });
+  const snapshot=managementSnapshot(db,'total-tools');
+  assert.equal(snapshot.actual,1000);
+  assert.equal(snapshot.consumed,400);
+});
+
+test('target portfolio ranks actual cost without losing requested context', () => {
+  const db=freshDb();
+  const req=event(1,'portfolio-pr');
+  req.sourceRecordId='901';
+  req.payload.items[0].allocations=[{targetType:'vehicle',targetId:'3',targetLabel:'Truck 3',amount:600,quantity:6,percent:100,expenseCategory:'parts',valuationStatus:'declared'}];
+  req.payload.items[0].lineTotal=600; req.payload.items[0].quantity=6; req.payload.items[0].unitCost=100;
+  ingestEvent(db,req);
+  ingestEvent(db,{
+    id:'portfolio-consume',type:'consumable.issued',occurredAt:'2026-09-25T03:00:00.000Z',
+    tenantId:'total-tools',source:'total-tools-pos',sourceRecordId:'902',sourceVersion:1,
+    payload:{currency:'JMD',items:[{sku:'ABC',productName:'Part',quantity:2,trackedValue:250,valuationStatus:'fully_valued',
+      allocations:[{targetType:'vehicle',targetId:'3',targetLabel:'Truck 3',amount:250,quantity:2,percent:100,expenseCategory:'parts',valuationStatus:'fully_valued'}]}]}
+  });
+  const portfolio=targetPortfolio(db,'total-tools','vehicle');
+  assert.equal(portfolio.length,1);
+  assert.equal(portfolio[0].requestedCost,600);
+  assert.equal(portfolio[0].actualCost,250);
+  const coverage=allocationCoverage(db,'total-tools');
+  assert.equal(coverage.totalLines,2);
+  assert.equal(coverage.incompleteActualLines,0);
 });

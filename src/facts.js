@@ -21,7 +21,7 @@ function factsFromEvent(event) {
     return (payload.items || []).map(item => ({
       eventId: event.id,
       tenantId: event.tenantId,
-      state: 'actual',
+      state: event.type === 'purchase.received' ? 'actual' : 'consumed',
       supplierId: event.type === 'purchase.received' ? (payload.supplierId || null) : null,
       locationId: event.locationId || null,
       departmentId: event.departmentId || null,

@@ -44,3 +44,47 @@ function targetCostSummary(db, tenantId, targetType, targetId) {
 }
 
 module.exports={targetCostSummary,latestAllocationClause};
+
+function targetPortfolio(db, tenantId, targetType) {
+  const latest=latestAllocationClause('a');
+  const rows=db.prepare(`SELECT
+    a.target_id,a.target_label,a.currency,
+    SUM(CASE WHEN a.state='requested' THEN a.amount ELSE 0 END) requested_cost,
+    SUM(CASE WHEN a.state='actual' THEN a.amount ELSE 0 END) actual_cost,
+    COUNT(CASE WHEN a.state='actual' AND a.valuation_status!='fully_valued' THEN 1 END) incomplete_actual_lines,
+    COUNT(*) line_count,
+    MAX(a.occurred_at) last_activity
+    FROM allocation_facts a
+    WHERE a.tenant_id=? AND a.target_type=? AND ${latest}
+    GROUP BY a.target_id,a.target_label,a.currency
+    ORDER BY actual_cost DESC,requested_cost DESC`).all(tenantId,targetType);
+  return rows.map(r=>({
+    targetId:r.target_id,
+    targetLabel:r.target_label,
+    currency:r.currency,
+    requestedCost:Number(r.requested_cost||0),
+    actualCost:Number(r.actual_cost||0),
+    incompleteActualLines:Number(r.incomplete_actual_lines||0),
+    lineCount:Number(r.line_count||0),
+    lastActivity:r.last_activity
+  }));
+}
+
+function allocationCoverage(db, tenantId) {
+  const latest=latestAllocationClause('a');
+  const totals=db.prepare(`SELECT
+    COUNT(*) total_lines,
+    SUM(CASE WHEN a.target_type='general_overhead' THEN 1 ELSE 0 END) overhead_lines,
+    SUM(CASE WHEN a.state='actual' AND a.valuation_status!='fully_valued' THEN 1 ELSE 0 END) incomplete_actual_lines,
+    SUM(CASE WHEN a.state='actual' THEN a.amount ELSE 0 END) actual_allocated_value
+    FROM allocation_facts a WHERE a.tenant_id=? AND ${latest}`).get(tenantId);
+  return {
+    totalLines:Number(totals.total_lines||0),
+    overheadLines:Number(totals.overhead_lines||0),
+    incompleteActualLines:Number(totals.incomplete_actual_lines||0),
+    actualAllocatedValue:Number(totals.actual_allocated_value||0)
+  };
+}
+
+module.exports.targetPortfolio=targetPortfolio;
+module.exports.allocationCoverage=allocationCoverage;

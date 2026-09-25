@@ -17,6 +17,7 @@ function managementSnapshot(db, tenantId) {
   const totals = db.prepare(`SELECT
     COALESCE(SUM(CASE WHEN f.state='requested' THEN f.amount ELSE 0 END),0) requested,
     COALESCE(SUM(CASE WHEN f.state='actual' THEN f.amount ELSE 0 END),0) actual,
+    COALESCE(SUM(CASE WHEN f.state='consumed' THEN f.amount ELSE 0 END),0) consumed,
     COALESCE(SUM(CASE WHEN f.state='loss' THEN f.amount ELSE 0 END),0) loss,
     COALESCE(SUM(CASE WHEN f.state='recovered' THEN f.amount ELSE 0 END),0) recovered
     FROM spend_facts f WHERE f.tenant_id=? AND ${latest}`).get(tenantId);
@@ -34,6 +35,7 @@ function managementSnapshot(db, tenantId) {
   return {
     requested: Number(totals.requested || 0),
     actual: Number(totals.actual || 0),
+    consumed: Number(totals.consumed || 0),
     loss: Number(totals.loss || 0),
     recovered: Number(totals.recovered || 0),
     netLoss: Number(totals.loss || 0) - Number(totals.recovered || 0),
