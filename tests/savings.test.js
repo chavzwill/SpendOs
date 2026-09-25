@@ -7,6 +7,7 @@ const { ingestEvent } = require('../src/ingest');
 const { runSavingsEngine } = require('../src/engine');
 const { upsertBudget } = require('../src/budgets');
 const { recordAction, verifyOpportunity, opportunityLifecycle, verifiedSavingsRollup } = require('../src/savings-lifecycle');
+const { upsertSavingsTarget, savingsTargetPerformance } = require('../src/savings-targets');
 
 function freshDb() {
   const db = new DatabaseSync(':memory:');
@@ -78,9 +79,9 @@ test('consumable variance flags abnormal quantity', () => {
   assert.ok(result.opportunities.some(x=>x.kind==='consumable_variance'));
 });
 
-function receipt({id,sourceRecordId=id,supplierId='S2',sku='SKU1',qty=1,unitCost=90,occurredAt}) {
+function receipt({id,sourceRecordId=id,supplierId='S2',sku='SKU1',qty=1,unitCost=90,departmentId='Ops',occurredAt}) {
   return {
-    id,type:'purchase.received',occurredAt,
+    id,type:'purchase.received',occurredAt,departmentId,
     tenantId:'total-tools',source:'total-tools-pos',
     sourceRecordId:String(sourceRecordId),sourceVersion:1,
     payload:{supplierId,currency:'JMD',items:[{
@@ -182,4 +183,38 @@ test('new receipt evidence adds only incremental verified savings', () => {
   const second=verifyOpportunity(db,'total-tools',op.id,{periodEnd:'2026-09-27T00:00:00.000Z'});
   assert.equal(second.verifiedSavings,80);
   assert.equal(opportunityLifecycle(db,'total-tools',op.id).verified_savings,255);
+});
+
+test('savings targets count only verified evidence inside the target period', () => {
+  const db=freshDb();
+  ingestEvent(db,purchase({id:'ta',sourceRecordId:'ta',supplierId:'S1',unitCost:140,occurredAt:'2026-09-20T10:00:00.000Z'}));
+  ingestEvent(db,purchase({id:'tb',sourceRecordId:'tb',supplierId:'S2',unitCost:100,occurredAt:'2026-09-21T10:00:00.000Z'}));
+  const result=runSavingsEngine(db,'total-tools',{supplierAlternatives:{minPct:3}});
+  const op=result.opportunities.find(x=>x.kind==='supplier_alternative');
+  recordAction(db,'total-tools',op.id,{actionType:'switch_supplier',actionNote:'Use S2',effectiveAt:'2026-09-22T00:00:00.000Z'});
+  ingestEvent(db,receipt({id:'tr1',sourceRecordId:'tr1',supplierId:'S2',departmentId:'Ops',qty:5,unitCost:105,occurredAt:'2026-09-24T10:00:00.000Z'}));
+  verifyOpportunity(db,'total-tools',op.id,{periodEnd:'2026-09-25T00:00:00.000Z'});
+
+  upsertSavingsTarget(db,'total-tools',{scopeType:'company',scopeId:'all',currency:'JMD',periodStart:'2026-09-22T00:00:00.000Z',periodEnd:'2026-09-25T23:59:59.999Z',targetAmount:200,ownerId:'7'});
+  upsertSavingsTarget(db,'total-tools',{scopeType:'supplier',scopeId:'S2',currency:'JMD',periodStart:'2026-09-22T00:00:00.000Z',periodEnd:'2026-09-25T23:59:59.999Z',targetAmount:175});
+  upsertSavingsTarget(db,'total-tools',{scopeType:'department',scopeId:'Ops',currency:'JMD',periodStart:'2026-09-22T00:00:00.000Z',periodEnd:'2026-09-23T23:59:59.999Z',targetAmount:50});
+
+  const performance=savingsTargetPerformance(db,'total-tools');
+  const company=performance.find(x=>x.scope_type==='company');
+  const supplier=performance.find(x=>x.scope_type==='supplier');
+  const department=performance.find(x=>x.scope_type==='department');
+
+  assert.equal(company.verified_savings,175);
+  assert.equal(company.gap,25);
+  assert.equal(company.performance_status,'in_progress');
+  assert.equal(supplier.verified_savings,175);
+  assert.equal(supplier.performance_status,'met');
+  assert.equal(department.verified_savings,0);
+  assert.equal(department.performance_status,'not_started');
+});
+
+test('savings target validation rejects invalid periods and negative goals', () => {
+  const db=freshDb();
+  assert.throws(()=>upsertSavingsTarget(db,'total-tools',{scopeType:'company',scopeId:'all',currency:'JMD',periodStart:'2026-10-01',periodEnd:'2026-09-01',targetAmount:100}),/Valid savings target period/);
+  assert.throws(()=>upsertSavingsTarget(db,'total-tools',{scopeType:'company',scopeId:'all',currency:'JMD',periodStart:'2026-09-01',periodEnd:'2026-09-30',targetAmount:-1}),/non-negative/);
 });

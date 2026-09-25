@@ -6,6 +6,7 @@ const { runSavingsEngine } = require('./engine');
 const { upsertBudget } = require('./budgets');
 const { targetCostSummary, targetPortfolio, allocationCoverage, targetTrend } = require('./cost-economics');
 const { recordAction, verifyOpportunity, opportunityLifecycle, verifiedSavingsRollup } = require('./savings-lifecycle');
+const { upsertSavingsTarget, savingsTargetPerformance } = require('./savings-targets');
 
 const port = Number(process.env.PORT || 4010);
 const apiKey = process.env.SPENDOS_API_KEY || '';
@@ -85,6 +86,22 @@ const server = http.createServer((req, res) => {
     try {
       return send(res,200,opportunityLifecycle(db,decodeURIComponent(lifecycleMatch[2]),Number(lifecycleMatch[1])));
     } catch(error) { return send(res,404,{error:error.message}); }
+  }
+
+  const targetPerformanceMatch = req.url.match(/^\/v1\/savings\/targets\/performance\?tenantId=([^&]+)$/);
+  if (req.method === 'GET' && targetPerformanceMatch) {
+    return send(res,200,savingsTargetPerformance(db,decodeURIComponent(targetPerformanceMatch[1])));
+  }
+
+  const targetMatch = req.url.match(/^\/v1\/savings\/targets\?tenantId=([^&]+)$/);
+  if (req.method === 'POST' && targetMatch) {
+    let body='';
+    req.on('data',chunk=>{body+=chunk;});
+    req.on('end',()=>{
+      try{return send(res,201,upsertSavingsTarget(db,decodeURIComponent(targetMatch[1]),JSON.parse(body||'{}')));}
+      catch(error){return send(res,400,{error:error.message});}
+    });
+    return;
   }
 
   const rollupMatch = req.url.match(/^\/v1\/savings\/verified-rollup\?tenantId=([^&]+)$/);

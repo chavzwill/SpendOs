@@ -145,3 +145,22 @@ CREATE TABLE IF NOT EXISTS savings_verification_evidence_claims (
 
 CREATE INDEX IF NOT EXISTS idx_savings_claims_verification
   ON savings_verification_evidence_claims(verification_id,opportunity_id);
+
+CREATE TABLE IF NOT EXISTS savings_targets (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  tenant_id TEXT NOT NULL,
+  scope_type TEXT NOT NULL,
+  scope_id TEXT NOT NULL,
+  currency TEXT NOT NULL,
+  period_start TEXT NOT NULL,
+  period_end TEXT NOT NULL,
+  target_amount REAL NOT NULL,
+  owner_id TEXT,
+  note TEXT,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(tenant_id,scope_type,scope_id,currency,period_start,period_end)
+);
+
+CREATE INDEX IF NOT EXISTS idx_savings_targets_period
+  ON savings_targets(tenant_id,period_start,period_end,scope_type,scope_id);

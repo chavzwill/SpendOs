@@ -40,9 +40,11 @@ function weightedActuals(db, tenantId, sku, after, before) {
 function receiptEvidenceRows(db, tenantId, sku, actuals) {
   const ids=[...new Set(actuals.flatMap(x=>String(x.event_ids||'').split(',').filter(Boolean)))];
   const rows=[];
-  const stmt=db.prepare(`SELECT event_id,supplier_id,department_id,SUM(quantity) quantity,SUM(amount) amount,MAX(occurred_at) occurred_at
+  const stmt=db.prepare(`SELECT event_id,MAX(supplier_id) supplier_id,
+    CASE WHEN COUNT(DISTINCT COALESCE(department_id,''))=1 THEN MAX(department_id) ELSE NULL END department_id,
+    SUM(quantity) quantity,SUM(amount) amount,MAX(occurred_at) occurred_at
     FROM spend_facts WHERE tenant_id=? AND state='actual' AND sku=? AND event_id=?
-    GROUP BY event_id,supplier_id,department_id`);
+    GROUP BY event_id`);
   for(const id of ids) {
     for(const row of stmt.all(tenantId,sku,id)) rows.push(row);
   }
@@ -148,8 +150,9 @@ function verifiedSavingsRollup(db, tenantId) {
     JOIN savings_opportunities o ON o.id=c.opportunity_id
     JOIN savings_verifications v ON v.id=c.verification_id
     WHERE c.tenant_id=?`).all(tenantId);
-  const factStmt=db.prepare(`SELECT supplier_id,department_id
-    FROM spend_facts WHERE tenant_id=? AND event_id=? AND sku=? LIMIT 1`);
+  const factStmt=db.prepare(`SELECT MAX(supplier_id) supplier_id,
+    CASE WHEN COUNT(DISTINCT COALESCE(department_id,''))=1 THEN MAX(department_id) ELSE NULL END department_id
+    FROM spend_facts WHERE tenant_id=? AND event_id=? AND sku=?`);
   const groups={currency:new Map(),supplier:new Map(),category:new Map(),department:new Map(),period:new Map()};
   const add=(map,key,currency,amount)=>{
     const id=String(key||'unattributed')+'::'+String(currency||'UNKNOWN');
