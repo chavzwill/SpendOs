@@ -164,3 +164,39 @@ CREATE TABLE IF NOT EXISTS savings_targets (
 
 CREATE INDEX IF NOT EXISTS idx_savings_targets_period
   ON savings_targets(tenant_id,period_start,period_end,scope_type,scope_id);
+
+CREATE TABLE IF NOT EXISTS savings_leakage_cases (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  tenant_id TEXT NOT NULL,
+  opportunity_id INTEGER NOT NULL REFERENCES savings_opportunities(id),
+  leakage_kind TEXT NOT NULL,
+  sku TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'identified',
+  priority TEXT NOT NULL DEFAULT 'high',
+  owner_id TEXT,
+  due_at TEXT,
+  corrective_action TEXT,
+  corrective_note TEXT,
+  action_effective_at TEXT,
+  detection_evidence_json TEXT NOT NULL DEFAULT '{}',
+  closure_evidence_json TEXT,
+  first_seen_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  last_seen_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  resolved_at TEXT,
+  UNIQUE(tenant_id,opportunity_id,leakage_kind)
+);
+
+CREATE TABLE IF NOT EXISTS savings_leakage_case_events (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  case_id INTEGER NOT NULL REFERENCES savings_leakage_cases(id),
+  event_type TEXT NOT NULL,
+  actor_id TEXT,
+  note TEXT,
+  evidence_json TEXT,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_savings_leakage_cases_status
+  ON savings_leakage_cases(tenant_id,status,priority,last_seen_at);
+CREATE INDEX IF NOT EXISTS idx_savings_leakage_case_events
+  ON savings_leakage_case_events(case_id,created_at);

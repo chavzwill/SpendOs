@@ -8,6 +8,7 @@ const { targetCostSummary, targetPortfolio, allocationCoverage, targetTrend } = 
 const { recordAction, verifyOpportunity, opportunityLifecycle, verifiedSavingsRollup } = require('./savings-lifecycle');
 const { upsertSavingsTarget, savingsTargetPerformance, savingsAccountabilityAttention } = require('./savings-targets');
 const { savingsLeakageAnalysis } = require('./savings-leakage');
+const { refreshLeakageCases, updateLeakageCase, verifyLeakageClosure, leakageCaseDetail } = require('./savings-leakage-cases');
 
 const port = Number(process.env.PORT || 4010);
 const apiKey = process.env.SPENDOS_API_KEY || '';
@@ -87,6 +88,32 @@ const server = http.createServer((req, res) => {
     try {
       return send(res,200,opportunityLifecycle(db,decodeURIComponent(lifecycleMatch[2]),Number(lifecycleMatch[1])));
     } catch(error) { return send(res,404,{error:error.message}); }
+  }
+
+  const leakageCaseDetailMatch = req.url.match(/^\/v1\/savings\/leakage\/cases\/(\d+)\?tenantId=([^&]+)$/);
+  if (req.method === 'GET' && leakageCaseDetailMatch) {
+    try{return send(res,200,leakageCaseDetail(db,decodeURIComponent(leakageCaseDetailMatch[2]),Number(leakageCaseDetailMatch[1])));}
+    catch(error){return send(res,404,{error:error.message});}
+  }
+
+  const leakageCaseStateMatch = req.url.match(/^\/v1\/savings\/leakage\/cases\/(\d+)\/state\?tenantId=([^&]+)$/);
+  if (req.method === 'POST' && leakageCaseStateMatch) {
+    let body='';req.on('data',chunk=>{body+=chunk;});req.on('end',()=>{
+      try{return send(res,200,updateLeakageCase(db,decodeURIComponent(leakageCaseStateMatch[2]),Number(leakageCaseStateMatch[1]),JSON.parse(body||'{}')));}
+      catch(error){return send(res,400,{error:error.message});}
+    });
+    return;
+  }
+
+  const leakageCaseVerifyMatch = req.url.match(/^\/v1\/savings\/leakage\/cases\/(\d+)\/verify\?tenantId=([^&]+)$/);
+  if (req.method === 'POST' && leakageCaseVerifyMatch) {
+    try{return send(res,200,verifyLeakageClosure(db,decodeURIComponent(leakageCaseVerifyMatch[2]),Number(leakageCaseVerifyMatch[1]),null));}
+    catch(error){return send(res,400,{error:error.message});}
+  }
+
+  const leakageCasesMatch = req.url.match(/^\/v1\/savings\/leakage\/cases\?tenantId=([^&]+)$/);
+  if (req.method === 'POST' && leakageCasesMatch) {
+    return send(res,200,refreshLeakageCases(db,decodeURIComponent(leakageCasesMatch[1])));
   }
 
   const leakageMatch = req.url.match(/^\/v1\/savings\/leakage\?tenantId=([^&]+)$/);

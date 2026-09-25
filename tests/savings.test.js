@@ -9,6 +9,7 @@ const { upsertBudget } = require('../src/budgets');
 const { recordAction, verifyOpportunity, opportunityLifecycle, verifiedSavingsRollup } = require('../src/savings-lifecycle');
 const { upsertSavingsTarget, savingsTargetPerformance, savingsAccountabilityAttention } = require('../src/savings-targets');
 const { savingsLeakageAnalysis } = require('../src/savings-leakage');
+const { refreshLeakageCases, updateLeakageCase, verifyLeakageClosure, leakageCaseDetail } = require('../src/savings-leakage-cases');
 
 function freshDb() {
   const db = new DatabaseSync(':memory:');
@@ -275,4 +276,44 @@ test('savings leakage proves when later actual cost returns to the old reference
   assert.equal(item.referenceUnitAmount,140);
   assert.equal(item.laterWeightedUnitAmount,145);
   assert.deepEqual(item.evidenceEventIds,['lrv2']);
+});
+
+test('leakage case cannot close without post-remediation receipt evidence', () => {
+  const db=freshDb();
+  ingestEvent(db,purchase({id:'ca1',sourceRecordId:'ca1',supplierId:'S1',unitCost:140,occurredAt:'2026-09-01T10:00:00.000Z'}));
+  ingestEvent(db,purchase({id:'ca2',sourceRecordId:'ca2',supplierId:'S2',unitCost:100,occurredAt:'2026-09-02T10:00:00.000Z'}));
+  const result=runSavingsEngine(db,'total-tools',{supplierAlternatives:{minPct:3}});
+  const op=result.opportunities.find(x=>x.kind==='supplier_alternative');
+  recordAction(db,'total-tools',op.id,{actionType:'switch_supplier',actionNote:'Move to S2',effectiveAt:'2026-09-03T00:00:00.000Z'});
+  ingestEvent(db,receipt({id:'car1',sourceRecordId:'car1',supplierId:'S1',qty:2,unitCost:138,occurredAt:'2026-09-10T10:00:00.000Z'}));
+  const cases=refreshLeakageCases(db,'total-tools');
+  const c=cases.find(x=>x.leakage_kind==='supplier_switch_not_sticking');
+  updateLeakageCase(db,'total-tools',c.id,{status:'actioned',ownerId:'7',correctiveAction:'enforce_supplier_switch',correctiveNote:'Block S1 and reissue supplier instruction',actionEffectiveAt:'2026-09-11T00:00:00.000Z',actorId:'7'});
+  const checked=verifyLeakageClosure(db,'total-tools',c.id,'7');
+  assert.equal(checked.status,'insufficient_evidence');
+  assert.equal(leakageCaseDetail(db,'total-tools',c.id).status,'actioned');
+});
+
+test('leakage case stays open when bad receipts continue and closes only on clean post-remediation evidence', () => {
+  const db=freshDb();
+  ingestEvent(db,purchase({id:'cb1',sourceRecordId:'cb1',supplierId:'S1',unitCost:140,occurredAt:'2026-09-01T10:00:00.000Z'}));
+  ingestEvent(db,purchase({id:'cb2',sourceRecordId:'cb2',supplierId:'S2',unitCost:100,occurredAt:'2026-09-02T10:00:00.000Z'}));
+  const result=runSavingsEngine(db,'total-tools',{supplierAlternatives:{minPct:3}});
+  const op=result.opportunities.find(x=>x.kind==='supplier_alternative');
+  recordAction(db,'total-tools',op.id,{actionType:'switch_supplier',actionNote:'Move to S2',effectiveAt:'2026-09-03T00:00:00.000Z'});
+  ingestEvent(db,receipt({id:'cbr1',sourceRecordId:'cbr1',supplierId:'S1',qty:2,unitCost:138,occurredAt:'2026-09-10T10:00:00.000Z'}));
+  const c=refreshLeakageCases(db,'total-tools').find(x=>x.leakage_kind==='supplier_switch_not_sticking');
+
+  updateLeakageCase(db,'total-tools',c.id,{status:'actioned',ownerId:'7',correctiveAction:'enforce_supplier_switch',correctiveNote:'Block S1',actionEffectiveAt:'2026-09-11T00:00:00.000Z',actorId:'7'});
+  ingestEvent(db,receipt({id:'cbr2',sourceRecordId:'cbr2',supplierId:'S1',qty:1,unitCost:137,occurredAt:'2026-09-12T10:00:00.000Z'}));
+  assert.equal(verifyLeakageClosure(db,'total-tools',c.id,'7').status,'leakage_persists');
+
+  updateLeakageCase(db,'total-tools',c.id,{status:'actioned',ownerId:'7',correctiveAction:'supplier_block_confirmed',correctiveNote:'S1 disabled for SKU1',actionEffectiveAt:'2026-09-13T00:00:00.000Z',actorId:'7'});
+  ingestEvent(db,receipt({id:'cbr3',sourceRecordId:'cbr3',supplierId:'S2',qty:2,unitCost:102,occurredAt:'2026-09-14T10:00:00.000Z'}));
+  const resolved=verifyLeakageClosure(db,'total-tools',c.id,'7');
+  assert.equal(resolved.status,'verified_resolved');
+  assert.equal(leakageCaseDetail(db,'total-tools',c.id).status,'verified_resolved');
+
+  const refreshed=refreshLeakageCases(db,'total-tools').find(x=>x.id===c.id);
+  assert.equal(refreshed.status,'verified_resolved');
 });
