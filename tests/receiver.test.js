@@ -128,3 +128,26 @@ test('allocated purchase intent and actual consumption stay distinct by target',
   assert.equal(summary.incompleteActualLines,0);
   assert.equal(summary.categories.length,2);
 });
+
+test('purchase receipt becomes actual target cost without replacing request intent', () => {
+  const db = freshDb();
+  const request = event(1, 'pr-intent');
+  request.sourceRecordId='601';
+  request.payload.items[0].allocations=[{targetType:'rental_asset',targetId:'88',amount:1000,quantity:10,percent:100,expenseCategory:'parts',valuationStatus:'declared'}];
+  request.payload.items[0].lineTotal=1000;
+  request.payload.items[0].unitCost=100;
+  request.payload.items[0].quantity=10;
+  ingestEvent(db,request);
+
+  ingestEvent(db,{
+    id:'receipt-1',type:'purchase.received',occurredAt:'2026-09-25T01:00:00.000Z',
+    tenantId:'total-tools',source:'total-tools-pos',sourceRecordId:'701',sourceVersion:1,
+    locationId:'2',payload:{supplierId:'5',currency:'JMD',items:[{
+      sku:'ABC',description:'Bearing',quantity:4,unitCost:100,lineCost:400,
+      allocations:[{targetType:'rental_asset',targetId:'88',amount:400,quantity:4,percent:100,expenseCategory:'parts',valuationStatus:'actual'}]
+    }]}
+  });
+  const summary=targetCostSummary(db,'total-tools','rental_asset','88');
+  assert.equal(summary.requestedCost,1000);
+  assert.equal(summary.actualCost,400);
+});

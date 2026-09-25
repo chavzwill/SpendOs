@@ -17,19 +17,19 @@ function factsFromEvent(event) {
       occurredAt: event.occurredAt,
     }));
   }
-  if (event.type === 'consumable.issued') {
+  if (event.type === 'consumable.issued' || event.type === 'purchase.received') {
     return (payload.items || []).map(item => ({
       eventId: event.id,
       tenantId: event.tenantId,
       state: 'actual',
-      supplierId: null,
+      supplierId: event.type === 'purchase.received' ? (payload.supplierId || null) : null,
       locationId: event.locationId || null,
       departmentId: event.departmentId || null,
       sku: item.sku || null,
-      description: item.productName || null,
+      description: item.productName || item.description || null,
       quantity: Number(item.quantity || 0),
-      unitAmount: Number(item.quantity || 0) > 0 ? Number(item.trackedValue || 0) / Number(item.quantity || 1) : 0,
-      amount: Number(item.trackedValue || 0),
+      unitAmount: event.type === 'purchase.received' ? Number(item.unitCost || 0) : (Number(item.quantity || 0) > 0 ? Number(item.trackedValue || 0) / Number(item.quantity || 1) : 0),
+      amount: event.type === 'purchase.received' ? Number(item.lineCost || 0) : Number(item.trackedValue || 0),
       currency: payload.currency || null,
       occurredAt: event.occurredAt,
     }));
@@ -39,7 +39,7 @@ function factsFromEvent(event) {
 
 function allocationFactsFromEvent(event) {
   const payload = event.payload || {};
-  const state = event.type === 'consumable.issued' ? 'actual' :
+  const state = (event.type === 'consumable.issued' || event.type === 'purchase.received') ? 'actual' :
     event.type === 'purchase.requested' ? 'requested' : null;
   if (!state) return [];
   const facts = [];
