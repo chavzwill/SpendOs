@@ -8,6 +8,7 @@ const { runSavingsEngine } = require('../src/engine');
 const { upsertBudget } = require('../src/budgets');
 const { recordAction, verifyOpportunity, opportunityLifecycle, verifiedSavingsRollup } = require('../src/savings-lifecycle');
 const { upsertSavingsTarget, savingsTargetPerformance, savingsAccountabilityAttention } = require('../src/savings-targets');
+const { savingsLeakageAnalysis } = require('../src/savings-leakage');
 
 function freshDb() {
   const db = new DatabaseSync(':memory:');
@@ -239,4 +240,39 @@ test('savings accountability attention flags ended target and aged unverified ac
   const attention=savingsAccountabilityAttention(db,'total-tools','2026-09-25T12:00:00.000Z');
   assert.ok(attention.items.some(x=>x.kind==='target_period_ended_below_goal'));
   assert.ok(attention.items.some(x=>x.kind==='action_verification_due'&&x.opportunityId===op.id));
+});
+
+test('savings leakage proves when an approved supplier switch does not stick', () => {
+  const db=freshDb();
+  ingestEvent(db,purchase({id:'ls1',sourceRecordId:'ls1',supplierId:'S1',unitCost:140,occurredAt:'2026-09-01T10:00:00.000Z'}));
+  ingestEvent(db,purchase({id:'ls2',sourceRecordId:'ls2',supplierId:'S2',unitCost:100,occurredAt:'2026-09-02T10:00:00.000Z'}));
+  const result=runSavingsEngine(db,'total-tools',{supplierAlternatives:{minPct:3}});
+  const op=result.opportunities.find(x=>x.kind==='supplier_alternative');
+  recordAction(db,'total-tools',op.id,{actionType:'switch_supplier',actionNote:'Move purchases to S2',effectiveAt:'2026-09-03T00:00:00.000Z'});
+  ingestEvent(db,receipt({id:'lsr1',sourceRecordId:'lsr1',supplierId:'S1',qty:3,unitCost:138,occurredAt:'2026-09-10T10:00:00.000Z'}));
+  const leakage=savingsLeakageAnalysis(db,'total-tools');
+  const item=leakage.items.find(x=>x.kind==='supplier_switch_not_sticking');
+  assert.ok(item);
+  assert.equal(item.oldSupplierId,'S1');
+  assert.equal(item.quantity,3);
+  assert.deepEqual(item.evidenceEventIds,['lsr1']);
+  assert.equal(leakage.methodology.inferredCauses,false);
+});
+
+test('savings leakage proves when later actual cost returns to the old reference', () => {
+  const db=freshDb();
+  ingestEvent(db,purchase({id:'lr1',sourceRecordId:'lr1',supplierId:'S1',unitCost:140,occurredAt:'2026-09-01T10:00:00.000Z'}));
+  ingestEvent(db,purchase({id:'lr2',sourceRecordId:'lr2',supplierId:'S2',unitCost:100,occurredAt:'2026-09-02T10:00:00.000Z'}));
+  const result=runSavingsEngine(db,'total-tools',{supplierAlternatives:{minPct:3}});
+  const op=result.opportunities.find(x=>x.kind==='supplier_alternative');
+  recordAction(db,'total-tools',op.id,{actionType:'switch_supplier',actionNote:'Move purchases to S2',effectiveAt:'2026-09-03T00:00:00.000Z'});
+  ingestEvent(db,receipt({id:'lrv1',sourceRecordId:'lrv1',supplierId:'S2',qty:5,unitCost:105,occurredAt:'2026-09-10T10:00:00.000Z'}));
+  verifyOpportunity(db,'total-tools',op.id,{periodEnd:'2026-09-12T00:00:00.000Z'});
+  ingestEvent(db,receipt({id:'lrv2',sourceRecordId:'lrv2',supplierId:'S2',qty:2,unitCost:145,occurredAt:'2026-09-20T10:00:00.000Z'}));
+  const leakage=savingsLeakageAnalysis(db,'total-tools');
+  const item=leakage.items.find(x=>x.kind==='verified_savings_leakage_returned');
+  assert.ok(item);
+  assert.equal(item.referenceUnitAmount,140);
+  assert.equal(item.laterWeightedUnitAmount,145);
+  assert.deepEqual(item.evidenceEventIds,['lrv2']);
 });

@@ -7,6 +7,7 @@ const { upsertBudget } = require('./budgets');
 const { targetCostSummary, targetPortfolio, allocationCoverage, targetTrend } = require('./cost-economics');
 const { recordAction, verifyOpportunity, opportunityLifecycle, verifiedSavingsRollup } = require('./savings-lifecycle');
 const { upsertSavingsTarget, savingsTargetPerformance, savingsAccountabilityAttention } = require('./savings-targets');
+const { savingsLeakageAnalysis } = require('./savings-leakage');
 
 const port = Number(process.env.PORT || 4010);
 const apiKey = process.env.SPENDOS_API_KEY || '';
@@ -86,6 +87,11 @@ const server = http.createServer((req, res) => {
     try {
       return send(res,200,opportunityLifecycle(db,decodeURIComponent(lifecycleMatch[2]),Number(lifecycleMatch[1])));
     } catch(error) { return send(res,404,{error:error.message}); }
+  }
+
+  const leakageMatch = req.url.match(/^\/v1\/savings\/leakage\?tenantId=([^&]+)$/);
+  if (req.method === 'GET' && leakageMatch) {
+    return send(res,200,savingsLeakageAnalysis(db,decodeURIComponent(leakageMatch[1])));
   }
 
   const attentionMatch = req.url.match(/^\/v1\/savings\/attention\?tenantId=([^&]+)$/);
