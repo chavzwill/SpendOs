@@ -5,6 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const { ingestEvent } = require('../src/ingest');
 const { managementSnapshot, supplierPriceHistory } = require('../src/analytics');
+const { targetCostSummary } = require('../src/cost-economics');
 
 function freshDb() {
   const db = new DatabaseSync(':memory:');
@@ -91,4 +92,39 @@ test('latest source version replaces prior requested-spend projection', () => {
   const snapshot = managementSnapshot(db, 'total-tools');
   assert.equal(snapshot.requested, 150);
   assert.equal(db.prepare('SELECT COUNT(*) c FROM spend_events').get().c, 2);
+});
+
+test('allocated purchase intent and actual consumption stay distinct by target', () => {
+  const db = freshDb();
+  const request = event(1, 'alloc-pr');
+  request.sourceRecordId = '501';
+  request.payload.items[0].allocations = [{
+    targetType:'rental_asset',targetId:'77',targetLabel:'RA-77',
+    amount:48000,quantity:4,percent:100,purpose:'maintenance',
+    expenseCategory:'parts',valuationStatus:'declared'
+  }];
+  ingestEvent(db, request);
+
+  const actual = {
+    id:'alloc-consume',type:'consumable.issued',
+    occurredAt:'2026-09-24T19:00:00.000Z',tenantId:'total-tools',
+    source:'total-tools-pos',sourceRecordId:'900',sourceVersion:1,
+    locationId:'2',departmentId:null,
+    payload:{currency:'JMD',items:[{
+      sku:'ABC',productName:'Bearing',quantity:2,trackedValue:18000,
+      valuationStatus:'fully_valued',
+      allocations:[{
+        targetType:'rental_asset',targetId:'77',targetLabel:'RA-77',
+        amount:18000,quantity:2,percent:100,purpose:'repair',
+        expenseCategory:'parts',valuationStatus:'fully_valued'
+      }]
+    }]}
+  };
+  ingestEvent(db, actual);
+
+  const summary = targetCostSummary(db,'total-tools','rental_asset','77');
+  assert.equal(summary.requestedCost,48000);
+  assert.equal(summary.actualCost,18000);
+  assert.equal(summary.incompleteActualLines,0);
+  assert.equal(summary.categories.length,2);
 });

@@ -1,5 +1,5 @@
 const { getLatestVersion, insertEvent, setLatestVersion } = require('./store');
-const { factsFromEvent, insertFacts } = require('./facts');
+const { factsFromEvent, allocationFactsFromEvent, insertFacts, insertAllocationFacts } = require('./facts');
 
 function validateEvent(event) {
   const required = ['id','type','occurredAt','tenantId','source','sourceRecordId','sourceVersion'];
@@ -29,6 +29,7 @@ function ingestEvent(db, event) {
   try {
     insertEvent(db, event);
     insertFacts(db, factsFromEvent(event));
+    insertAllocationFacts(db, allocationFactsFromEvent(event));
     setLatestVersion(db, event);
     db.exec('COMMIT');
     return { status: 'accepted', latestVersion: Number(event.sourceVersion) };

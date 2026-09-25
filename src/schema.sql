@@ -77,3 +77,27 @@ CREATE TABLE IF NOT EXISTS savings_opportunities (
 
 CREATE INDEX IF NOT EXISTS idx_budgets_scope ON budgets(tenant_id, scope_type, scope_id, period_start, period_end);
 CREATE INDEX IF NOT EXISTS idx_savings_opportunities_status ON savings_opportunities(tenant_id, status, kind);
+
+CREATE TABLE IF NOT EXISTS allocation_facts (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  event_id TEXT NOT NULL REFERENCES spend_events(id),
+  tenant_id TEXT NOT NULL,
+  state TEXT NOT NULL,
+  target_type TEXT NOT NULL,
+  target_id TEXT,
+  target_label TEXT,
+  sku TEXT,
+  description TEXT,
+  quantity REAL,
+  amount REAL NOT NULL DEFAULT 0,
+  currency TEXT,
+  purpose TEXT,
+  expense_category TEXT,
+  valuation_status TEXT NOT NULL DEFAULT 'declared',
+  occurred_at TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_allocation_target
+  ON allocation_facts(tenant_id,target_type,target_id,occurred_at);
+CREATE INDEX IF NOT EXISTS idx_allocation_category
+  ON allocation_facts(tenant_id,expense_category,occurred_at);
