@@ -5,7 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const { ingestEvent } = require('../src/ingest');
 const { managementSnapshot, supplierPriceHistory } = require('../src/analytics');
-const { targetCostSummary, targetPortfolio, allocationCoverage } = require('../src/cost-economics');
+const { targetCostSummary, targetPortfolio, allocationCoverage, targetTrend } = require('../src/cost-economics');
 
 function freshDb() {
   const db = new DatabaseSync(':memory:');
@@ -190,4 +190,25 @@ test('target portfolio ranks actual cost without losing requested context', () =
   const coverage=allocationCoverage(db,'total-tools');
   assert.equal(coverage.totalLines,2);
   assert.equal(coverage.incompleteActualLines,0);
+});
+
+test('cost-object trend compares recent actual allocations without inventing revenue', () => {
+  const db=freshDb();
+  for (const x of [
+    {id:'old-v',rec:'v1',date:'2026-08-15T10:00:00.000Z',amount:100},
+    {id:'new-v',rec:'v2',date:'2026-09-15T10:00:00.000Z',amount:150}
+  ]) {
+    ingestEvent(db,{
+      id:x.id,type:'purchase.received',occurredAt:x.date,tenantId:'total-tools',
+      source:'total-tools-pos',sourceRecordId:x.rec,sourceVersion:1,
+      payload:{currency:'JMD',items:[{sku:'FUEL',description:'Fuel',quantity:1,unitCost:x.amount,lineCost:x.amount,
+        allocations:[{targetType:'vehicle',targetId:'3',targetLabel:'Truck 3',amount:x.amount,quantity:1,percent:100,expenseCategory:'fuel',valuationStatus:'actual'}]}]}
+    });
+  }
+  const rows=targetTrend(db,'total-tools','vehicle','2026-09-25T12:00:00.000Z');
+  assert.equal(rows.length,1);
+  assert.equal(rows[0].trailing30dCost,150);
+  assert.equal(rows[0].prior30dCost,100);
+  assert.equal(rows[0].costChangePct,50);
+  assert.equal(rows[0].costState,'cost_rising');
 });

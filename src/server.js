@@ -4,7 +4,7 @@ const { ingestEvent } = require('./ingest');
 const { managementSnapshot, supplierPriceHistory } = require('./analytics');
 const { runSavingsEngine } = require('./engine');
 const { upsertBudget } = require('./budgets');
-const { targetCostSummary, targetPortfolio, allocationCoverage } = require('./cost-economics');
+const { targetCostSummary, targetPortfolio, allocationCoverage, targetTrend } = require('./cost-economics');
 
 const port = Number(process.env.PORT || 4010);
 const apiKey = process.env.SPENDOS_API_KEY || '';
@@ -62,6 +62,11 @@ const server = http.createServer((req, res) => {
   const savingsMatch = req.url.match(/^\/v1\/savings\/run\?tenantId=([^&]+)$/);
   if (req.method === 'POST' && savingsMatch) {
     return send(res, 200, runSavingsEngine(db, decodeURIComponent(savingsMatch[1])));
+  }
+
+  const trendMatch = req.url.match(/^\/v1\/costs\/trend\?tenantId=([^&]+)&targetType=([^&]+)$/);
+  if (req.method === 'GET' && trendMatch) {
+    return send(res, 200, targetTrend(db, decodeURIComponent(trendMatch[1]), decodeURIComponent(trendMatch[2])));
   }
 
   const portfolioMatch = req.url.match(/^\/v1\/costs\/portfolio\?tenantId=([^&]+)&targetType=([^&]+)$/);
