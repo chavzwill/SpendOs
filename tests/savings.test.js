@@ -6,7 +6,7 @@ const path = require('path');
 const { ingestEvent } = require('../src/ingest');
 const { runSavingsEngine } = require('../src/engine');
 const { upsertBudget } = require('../src/budgets');
-const { recordAction, verifyOpportunity, opportunityLifecycle } = require('../src/savings-lifecycle');
+const { recordAction, verifyOpportunity, opportunityLifecycle, verifiedSavingsRollup } = require('../src/savings-lifecycle');
 
 function freshDb() {
   const db = new DatabaseSync(':memory:');
@@ -133,4 +133,53 @@ test('action is not called a saving when later actual cost does not improve', ()
   const lifecycle=opportunityLifecycle(db,'total-tools',op.id);
   assert.equal(lifecycle.status,'actioned');
   assert.equal(lifecycle.verified_savings,0);
+});
+
+test('the same receipt evidence cannot be counted twice', () => {
+  const db=freshDb();
+  ingestEvent(db,purchase({id:'da',sourceRecordId:'da',supplierId:'S1',unitCost:140,occurredAt:'2026-09-20T10:00:00.000Z'}));
+  ingestEvent(db,purchase({id:'db',sourceRecordId:'db',supplierId:'S2',unitCost:100,occurredAt:'2026-09-21T10:00:00.000Z'}));
+  const result=runSavingsEngine(db,'total-tools',{supplierAlternatives:{minPct:3}});
+  const op=result.opportunities.find(x=>x.kind==='supplier_alternative');
+  recordAction(db,'total-tools',op.id,{actionType:'switch_supplier',actionNote:'Use S2',effectiveAt:'2026-09-22T00:00:00.000Z'});
+  ingestEvent(db,receipt({id:'dr1',sourceRecordId:'dr1',supplierId:'S2',qty:5,unitCost:105,occurredAt:'2026-09-24T10:00:00.000Z'}));
+  assert.equal(verifyOpportunity(db,'total-tools',op.id,{periodEnd:'2026-09-25T00:00:00.000Z'}).verifiedSavings,175);
+  const second=verifyOpportunity(db,'total-tools',op.id,{periodEnd:'2026-09-25T00:00:00.000Z'});
+  assert.equal(second.status,'insufficient_evidence');
+  assert.equal(opportunityLifecycle(db,'total-tools',op.id).verified_savings,175);
+});
+
+
+
+test('verified savings rollup reconciles unique claimed receipt evidence', () => {
+  const db=freshDb();
+  ingestEvent(db,purchase({id:'ra',sourceRecordId:'ra',supplierId:'S1',unitCost:140,departmentId:'Ops',occurredAt:'2026-09-20T10:00:00.000Z'}));
+  ingestEvent(db,purchase({id:'rb',sourceRecordId:'rb',supplierId:'S2',unitCost:100,departmentId:'Ops',occurredAt:'2026-09-21T10:00:00.000Z'}));
+  const result=runSavingsEngine(db,'total-tools',{supplierAlternatives:{minPct:3}});
+  const op=result.opportunities.find(x=>x.kind==='supplier_alternative');
+  recordAction(db,'total-tools',op.id,{actionType:'switch_supplier',actionNote:'Use S2',effectiveAt:'2026-09-22T00:00:00.000Z'});
+  ingestEvent(db,receipt({id:'rr1',sourceRecordId:'rr1',supplierId:'S2',qty:5,unitCost:105,occurredAt:'2026-09-24T10:00:00.000Z'}));
+  verifyOpportunity(db,'total-tools',op.id,{periodEnd:'2026-09-25T00:00:00.000Z'});
+  const rollup=verifiedSavingsRollup(db,'total-tools');
+  assert.equal(rollup.claimedEvidenceCount,1);
+  assert.equal(rollup.totalsByCurrency[0].verifiedSavings,175);
+  assert.equal(rollup.bySupplier[0].dimension,'S2');
+  assert.equal(rollup.bySupplier[0].verifiedSavings,175);
+  assert.equal(rollup.byCategory[0].dimension,'supplier_alternative');
+  assert.equal(rollup.byPeriod[0].dimension,'2026-09');
+});
+
+test('new receipt evidence adds only incremental verified savings', () => {
+  const db=freshDb();
+  ingestEvent(db,purchase({id:'ia',sourceRecordId:'ia',supplierId:'S1',unitCost:140,occurredAt:'2026-09-20T10:00:00.000Z'}));
+  ingestEvent(db,purchase({id:'ib',sourceRecordId:'ib',supplierId:'S2',unitCost:100,occurredAt:'2026-09-21T10:00:00.000Z'}));
+  const result=runSavingsEngine(db,'total-tools',{supplierAlternatives:{minPct:3}});
+  const op=result.opportunities.find(x=>x.kind==='supplier_alternative');
+  recordAction(db,'total-tools',op.id,{actionType:'switch_supplier',actionNote:'Use S2',effectiveAt:'2026-09-22T00:00:00.000Z'});
+  ingestEvent(db,receipt({id:'ir1',sourceRecordId:'ir1',supplierId:'S2',qty:5,unitCost:105,occurredAt:'2026-09-24T10:00:00.000Z'}));
+  verifyOpportunity(db,'total-tools',op.id,{periodEnd:'2026-09-25T00:00:00.000Z'});
+  ingestEvent(db,receipt({id:'ir2',sourceRecordId:'ir2',supplierId:'S2',qty:2,unitCost:100,occurredAt:'2026-09-26T10:00:00.000Z'}));
+  const second=verifyOpportunity(db,'total-tools',op.id,{periodEnd:'2026-09-27T00:00:00.000Z'});
+  assert.equal(second.verifiedSavings,80);
+  assert.equal(opportunityLifecycle(db,'total-tools',op.id).verified_savings,255);
 });

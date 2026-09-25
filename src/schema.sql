@@ -130,3 +130,18 @@ CREATE TABLE IF NOT EXISTS savings_verifications (
 
 CREATE INDEX IF NOT EXISTS idx_savings_verifications_opportunity
   ON savings_verifications(opportunity_id,created_at);
+
+CREATE TABLE IF NOT EXISTS savings_verification_evidence_claims (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  tenant_id TEXT NOT NULL,
+  verification_id INTEGER NOT NULL REFERENCES savings_verifications(id),
+  opportunity_id INTEGER NOT NULL REFERENCES savings_opportunities(id),
+  event_id TEXT NOT NULL,
+  sku TEXT,
+  claimed_savings REAL NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(tenant_id,event_id,sku)
+);
+
+CREATE INDEX IF NOT EXISTS idx_savings_claims_verification
+  ON savings_verification_evidence_claims(verification_id,opportunity_id);

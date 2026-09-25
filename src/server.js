@@ -5,7 +5,7 @@ const { managementSnapshot, supplierPriceHistory } = require('./analytics');
 const { runSavingsEngine } = require('./engine');
 const { upsertBudget } = require('./budgets');
 const { targetCostSummary, targetPortfolio, allocationCoverage, targetTrend } = require('./cost-economics');
-const { recordAction, verifyOpportunity, opportunityLifecycle } = require('./savings-lifecycle');
+const { recordAction, verifyOpportunity, opportunityLifecycle, verifiedSavingsRollup } = require('./savings-lifecycle');
 
 const port = Number(process.env.PORT || 4010);
 const apiKey = process.env.SPENDOS_API_KEY || '';
@@ -85,6 +85,11 @@ const server = http.createServer((req, res) => {
     try {
       return send(res,200,opportunityLifecycle(db,decodeURIComponent(lifecycleMatch[2]),Number(lifecycleMatch[1])));
     } catch(error) { return send(res,404,{error:error.message}); }
+  }
+
+  const rollupMatch = req.url.match(/^\/v1\/savings\/verified-rollup\?tenantId=([^&]+)$/);
+  if (req.method === 'GET' && rollupMatch) {
+    return send(res,200,verifiedSavingsRollup(db,decodeURIComponent(rollupMatch[1])));
   }
 
   const savingsMatch = req.url.match(/^\/v1\/savings\/run\?tenantId=([^&]+)$/);
