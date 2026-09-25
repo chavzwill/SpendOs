@@ -101,3 +101,32 @@ CREATE INDEX IF NOT EXISTS idx_allocation_target
   ON allocation_facts(tenant_id,target_type,target_id,occurred_at);
 CREATE INDEX IF NOT EXISTS idx_allocation_category
   ON allocation_facts(tenant_id,expense_category,occurred_at);
+
+CREATE TABLE IF NOT EXISTS savings_opportunity_actions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  opportunity_id INTEGER NOT NULL REFERENCES savings_opportunities(id),
+  tenant_id TEXT NOT NULL,
+  action_type TEXT NOT NULL,
+  action_note TEXT NOT NULL,
+  actor_id TEXT,
+  effective_at TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_savings_actions_opportunity
+  ON savings_opportunity_actions(opportunity_id,effective_at);
+
+CREATE TABLE IF NOT EXISTS savings_verifications (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  opportunity_id INTEGER NOT NULL REFERENCES savings_opportunities(id),
+  tenant_id TEXT NOT NULL,
+  verification_status TEXT NOT NULL,
+  verified_savings REAL NOT NULL DEFAULT 0,
+  evidence_json TEXT NOT NULL,
+  period_start TEXT,
+  period_end TEXT,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_savings_verifications_opportunity
+  ON savings_verifications(opportunity_id,created_at);

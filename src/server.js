@@ -5,6 +5,7 @@ const { managementSnapshot, supplierPriceHistory } = require('./analytics');
 const { runSavingsEngine } = require('./engine');
 const { upsertBudget } = require('./budgets');
 const { targetCostSummary, targetPortfolio, allocationCoverage, targetTrend } = require('./cost-economics');
+const { recordAction, verifyOpportunity, opportunityLifecycle } = require('./savings-lifecycle');
 
 const port = Number(process.env.PORT || 4010);
 const apiKey = process.env.SPENDOS_API_KEY || '';
@@ -57,6 +58,33 @@ const server = http.createServer((req, res) => {
       decodeURIComponent(priceMatch[1]),
       decodeURIComponent(priceMatch[2])
     ));
+  }
+
+  const actionMatch = req.url.match(/^\/v1\/savings\/opportunities\/(\d+)\/actions\?tenantId=([^&]+)$/);
+  if (req.method === 'POST' && actionMatch) {
+    let body='';
+    req.on('data', chunk => { body += chunk; });
+    req.on('end', () => {
+      try {
+        const result=recordAction(db,decodeURIComponent(actionMatch[2]),Number(actionMatch[1]),JSON.parse(body||'{}'));
+        send(res,201,result);
+      } catch(error) { send(res,400,{error:error.message}); }
+    });
+    return;
+  }
+
+  const verifyMatch = req.url.match(/^\/v1\/savings\/opportunities\/(\d+)\/verify\?tenantId=([^&]+)$/);
+  if (req.method === 'POST' && verifyMatch) {
+    try {
+      return send(res,200,verifyOpportunity(db,decodeURIComponent(verifyMatch[2]),Number(verifyMatch[1])));
+    } catch(error) { return send(res,400,{error:error.message}); }
+  }
+
+  const lifecycleMatch = req.url.match(/^\/v1\/savings\/opportunities\/(\d+)\?tenantId=([^&]+)$/);
+  if (req.method === 'GET' && lifecycleMatch) {
+    try {
+      return send(res,200,opportunityLifecycle(db,decodeURIComponent(lifecycleMatch[2]),Number(lifecycleMatch[1])));
+    } catch(error) { return send(res,404,{error:error.message}); }
   }
 
   const savingsMatch = req.url.match(/^\/v1\/savings\/run\?tenantId=([^&]+)$/);
