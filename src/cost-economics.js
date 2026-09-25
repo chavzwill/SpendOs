@@ -121,27 +121,3 @@ function targetTrend(db, tenantId, targetType, asOf = new Date().toISOString()) 
 }
 
 module.exports.targetTrend=targetTrend;
-
-function targetTrend(db, tenantId, targetType, asOf = new Date().toISOString()) {
-  const latest=latestAllocationClause('a');
-  const asOfDate=new Date(asOf);
-  const t30=new Date(asOfDate.getTime()-30*86400000).toISOString();
-  const t60=new Date(asOfDate.getTime()-60*86400000).toISOString();
-  const rows=db.prepare(`SELECT a.target_id,MAX(a.target_label) target_label,a.currency,
-    SUM(CASE WHEN a.state='actual' THEN a.amount ELSE 0 END) actual_cost,
-    SUM(CASE WHEN a.state='requested' THEN a.amount ELSE 0 END) requested_cost,
-    SUM(CASE WHEN a.state='actual' AND a.occurred_at>=? THEN a.amount ELSE 0 END) trailing_30d_cost,
-    SUM(CASE WHEN a.state='actual' AND a.occurred_at>=? AND a.occurred_at<? THEN a.amount ELSE 0 END) prior_30d_cost,
-    COUNT(CASE WHEN a.state='actual' AND a.valuation_status!='fully_valued' AND a.valuation_status!='actual' THEN 1 END) incomplete_actual_lines,
-    MAX(a.occurred_at) last_activity
-    FROM allocation_facts a WHERE a.tenant_id=? AND a.target_type=? AND ${latest}
-    GROUP BY a.target_id,a.currency ORDER BY actual_cost DESC`).all(t30,t60,t30,tenantId,targetType);
-  return rows.map(r=>{
-    const trailing=Number(r.trailing_30d_cost||0),prior=Number(r.prior_30d_cost||0);
-    const changePct=prior>0?Number((((trailing-prior)/prior)*100).toFixed(2)):(trailing>0?null:0);
-    const state=Number(r.incomplete_actual_lines||0)>0?'evidence_gap':(changePct!=null&&changePct>=25?'cost_rising':changePct!=null&&changePct<=-15?'cost_improving':'stable');
-    return {targetId:r.target_id,targetLabel:r.target_label,currency:r.currency,actualCost:Number(r.actual_cost||0),requestedCost:Number(r.requested_cost||0),trailing30dCost:trailing,prior30dCost:prior,costChangePct:changePct,costState:state,incompleteActualLines:Number(r.incomplete_actual_lines||0),lastActivity:r.last_activity};
-  });
-}
-
-module.exports.targetTrend=targetTrend;
