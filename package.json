@@ -1,6 +1,6 @@
 {
   "name": "spend-os",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "private": true,
   "type": "commonjs",
   "engines": {
@@ -8,8 +8,7 @@
   },
   "scripts": {
     "start": "node src/server.js",
-    "preview:seed": "node scripts/seed-preview.js",
     "test": "node --test tests/*.test.js",
-    "check": "node --check src/server.js && node --check public/app.js && node --check scripts/seed-preview.js && node --check src/store.js && node --check src/ingest.js && node --check src/analytics.js && node --check src/opportunities.js && node --check src/savings.js && node --check src/budgets.js && node --check src/engine.js && node --check src/savings-lifecycle.js && node --check src/savings-targets.js && node --check src/savings-leakage.js && node --check src/savings-leakage-cases.js && node --check src/facts.js && node --check src/cost-economics.js && npm test"
+    "check": "node --check src/server.js && node --check src/ui-auth.js && node --check public/app.js && node --check src/store.js && node --check src/ingest.js && node --check src/analytics.js && node --check src/opportunities.js && node --check src/savings.js && node --check src/budgets.js && node --check src/engine.js && node --check src/savings-lifecycle.js && node --check src/savings-targets.js && node --check src/savings-leakage.js && node --check src/savings-leakage-cases.js && node --check src/facts.js && node --check src/cost-economics.js && npm test"
   }
 }

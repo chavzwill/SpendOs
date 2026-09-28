@@ -1,12 +1,16 @@
 const TENANT='total-tools';
-const state={snapshot:null,coverage:null,rollup:null,attention:null,leakage:null,savings:null,portfolios:{}};
+const state={system:null,snapshot:null,coverage:null,rollup:null,attention:null,leakage:null,savings:null,portfolios:{}};
 const money=(value,currency='JMD')=>new Intl.NumberFormat('en-JM',{style:'currency',currency:currency||'JMD',maximumFractionDigits:0}).format(Number(value||0));
 const num=value=>new Intl.NumberFormat('en-US',{maximumFractionDigits:1}).format(Number(value||0));
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const title=value=>String(value||'').replaceAll('_',' ').replace(/w/g,c=>c.toUpperCase());
 const api=async(path,options={})=>{
   const res=await fetch(path,{headers:{'content-type':'application/json',...(options.headers||{})},...options});
-  if(!res.ok) throw new Error((await res.json().catch(()=>({}))).error||`Request failed (${res.status})`);
+  if(!res.ok){
+    const body=await res.json().catch(()=>({}));
+    if(res.status===401&&path.startsWith('/v1/')) showLogin('Your SpendOS management session has expired.');
+    throw new Error(body.error||`Request failed (${res.status})`);
+  }
   return res.json();
 };
 const toast=message=>{
@@ -21,19 +25,72 @@ async function loadPortfolio(type='vehicle'){
 }
 
 async function refreshAll(showToast=false){
-  const [snapshot,coverage,rollup,attention,leakage,savings]=await Promise.all([
+  const [system,snapshot,coverage,rollup,attention,leakage,opportunities,budgets]=await Promise.all([
+    api(`/v1/system/status?tenantId=${TENANT}`),
     api(`/v1/management/dashboard?tenantId=${TENANT}`),
     api(`/v1/costs/coverage?tenantId=${TENANT}`),
     api(`/v1/savings/verified-rollup?tenantId=${TENANT}`),
     api(`/v1/savings/attention?tenantId=${TENANT}`),
     api(`/v1/savings/leakage?tenantId=${TENANT}`),
-    api(`/v1/savings/run?tenantId=${TENANT}`,{method:'POST'})
+    api(`/v1/savings/opportunities?tenantId=${TENANT}`),
+    api(`/v1/budgets/status?tenantId=${TENANT}`)
   ]);
-  Object.assign(state,{snapshot,coverage,rollup,attention,leakage,savings,portfolios:{}});
+  const savings={opportunities,budgets};
+  Object.assign(state,{system,snapshot,coverage,rollup,attention,leakage,savings,portfolios:{}});
   await loadPortfolio('vehicle');
+  renderConnectionStatus();
   renderOverview();
   renderSecondaryViews();
   if(showToast) toast('SpendOS evidence refreshed');
+}
+
+function formatEvidenceTime(value){
+  if(!value) return 'No evidence received';
+  const iso=String(value).includes('T')?String(value):String(value).replace(' ','T')+'Z';
+  const date=new Date(iso);
+  return Number.isNaN(date.getTime())?'Evidence received':date.toLocaleString([],{
+    month:'short',day:'numeric',hour:'numeric',minute:'2-digit'
+  });
+}
+
+function renderConnectionStatus(){
+  const system=state.system||{};
+  const mode=system.connectionState||'waiting_for_evidence';
+  const pill=document.querySelector('#system-status-pill');
+  const text=document.querySelector('#system-status-text');
+  const dot=document.querySelector('#connection-dot');
+  const label=document.querySelector('#connection-label');
+  const detail=document.querySelector('#connection-detail');
+  const banner=document.querySelector('#connection-banner');
+  const period=document.querySelector('#evidence-period');
+  const scanButton=document.querySelector('#run-savings-btn');
+  pill.classList.remove('connected','stale','waiting');
+  dot.classList.remove('connected','stale','waiting');
+
+  if(mode==='connected'){
+    pill.classList.add('connected');dot.classList.add('connected');
+    text.textContent='POS evidence live';
+    label.textContent='POS evidence connected';
+    detail.textContent=`${system.eventCount} accepted event${system.eventCount===1?'':'s'}`;
+    banner.hidden=true;
+  }else if(mode==='stale'){
+    pill.classList.add('stale');dot.classList.add('stale');
+    text.textContent='Evidence stale';
+    label.textContent='POS evidence is stale';
+    detail.textContent=`Last received ${formatEvidenceTime(system.lastReceivedAt)}`;
+    banner.hidden=false;banner.className='connection-banner stale';
+    banner.innerHTML='<strong>SpendOS is operational, but the POS evidence stream is stale.</strong> Check the POS outbox, worker schedule and connector health before relying on current totals.';
+  }else{
+    pill.classList.add('waiting');dot.classList.add('waiting');
+    text.textContent='Awaiting POS evidence';
+    label.textContent='Waiting for POS evidence';
+    detail.textContent='No authenticated spend events received';
+    banner.hidden=false;banner.className='connection-banner';
+    banner.innerHTML='<strong>SpendOS is operational and empty by design.</strong> No POS spend evidence has been received yet. The dashboard will populate automatically when the authenticated Total Tools POS connector sends real purchasing, receipt and consumption events.';
+  }
+  period.textContent=system.lastReceivedAt?`Last sync · ${formatEvidenceTime(system.lastReceivedAt)}`:'Awaiting first POS event';
+  scanButton.disabled=Number(system.eventCount||0)===0;
+  scanButton.title=scanButton.disabled?'Savings analysis becomes available after real POS evidence arrives.':'';
 }
 
 function renderOverview(){
@@ -70,13 +127,14 @@ function renderAttention(){
 }
 
 function renderSuppliers(){
-  const rows=(state.snapshot?.suppliers||[]).slice(0,6), max=Math.max(1,...rows.map(x=>Number(x.amount||0)));
+  const rows=(state.snapshot?.suppliers||[]).slice(0,6);
+  const total=Math.max(1,rows.reduce((sum,x)=>sum+Number(x.amount||0),0));
   document.querySelector('#supplier-list').innerHTML=rows.length?rows.map((r,i)=>`
     <div class="supplier-row">
       <div class="supplier-icon">S${i+1}</div>
-      <div><strong>Supplier ${esc(r.supplier_id)}</strong><span>${Math.round(100*Number(r.amount||0)/max)}% relative concentration</span></div>
+      <div><strong>${esc(r.supplier_id)}</strong><span>${num(100*Number(r.amount||0)/total)}% of recorded supplier spend</span></div>
       <em>${money(r.amount,r.currency)}</em>
-    </div>`).join(''):'<div class="empty">Supplier spend appears after POS evidence is received.</div>';
+    </div>`).join(''):'<div class="empty">No supplier spend evidence has been received from the POS yet.</div>';
 }
 
 async function renderCostBars(type){
@@ -124,14 +182,16 @@ function panel(titleText,eyebrow,body){
 
 function supplierTable(){
   const rows=state.snapshot?.suppliers||[];
-  return `<div class="table-wrap"><table><thead><tr><th>Supplier</th><th>Recorded spend</th><th>Currency</th><th>Share</th></tr></thead><tbody>${rows.map(r=>{
-    const total=rows.reduce((s,x)=>s+Number(x.amount||0),0)||1;
-    return `<tr><td><strong>Supplier ${esc(r.supplier_id)}</strong></td><td>${money(r.amount,r.currency)}</td><td>${esc(r.currency||'—')}</td><td>${num(100*Number(r.amount||0)/total)}%</td></tr>`;
-  }).join('')}</tbody></table></div>`;
+  if(!rows.length) return '<div class="empty">No supplier spend evidence has been received from the POS yet.</div>';
+  const total=rows.reduce((s,x)=>s+Number(x.amount||0),0)||1;
+  return `<div class="table-wrap"><table><thead><tr><th>Supplier</th><th>Recorded spend</th><th>Currency</th><th>Share</th></tr></thead><tbody>${rows.map(r=>
+    `<tr><td><strong>${esc(r.supplier_id)}</strong></td><td>${money(r.amount,r.currency)}</td><td>${esc(r.currency||'—')}</td><td>${num(100*Number(r.amount||0)/total)}%</td></tr>`
+  ).join('')}</tbody></table></div>`;
 }
 
 function opportunitiesFull(){
   const rows=state.savings?.opportunities||[];
+  if(!rows.length) return '<div class="empty">No savings opportunities have been detected from real POS evidence yet.</div>';
   return `<div class="table-wrap"><table><thead><tr><th>Opportunity</th><th>Evidence</th><th>Estimated</th><th>Verified</th><th>Status</th></tr></thead><tbody>${rows.map(row=>`
     <tr><td><strong>${esc(opportunityLabel(row))}</strong><div class="subcell">${esc(title(row.kind))}</div></td><td>${esc(evidenceLabel(row))}</td>
     <td>${money(row.estimated_savings,row.currency)}</td><td>${money(row.verified_savings,row.currency)}</td><td><span class="status ${esc(row.status)}">${esc(row.status)}</span></td></tr>`).join('')}</tbody></table></div>`;
@@ -207,6 +267,56 @@ function activateView(name){
   document.querySelector('#page-title').textContent=labels[name]||'SpendOS';
 }
 
+function showLogin(message=''){
+  const gate=document.querySelector('#login-gate');
+  gate.hidden=false;
+  document.querySelector('#login-error').textContent=message;
+  setTimeout(()=>document.querySelector('#login-user')?.focus(),0);
+}
+
+function hideLogin(session){
+  document.querySelector('#login-gate').hidden=true;
+  document.querySelector('#login-error').textContent='';
+  const logout=document.querySelector('#logout-btn');
+  logout.hidden=!session?.authRequired;
+}
+
+async function bootstrap(){
+  try{
+    const session=await api('/ui/session');
+    if(!session.authenticated) return showLogin();
+    hideLogin(session);
+    await refreshAll();
+  }catch(error){
+    showLogin(error.message);
+  }
+}
+
+document.querySelector('#login-form').addEventListener('submit',async event=>{
+  event.preventDefault();
+  const button=event.currentTarget.querySelector('button[type="submit"]');
+  const error=document.querySelector('#login-error');
+  button.disabled=true;button.textContent='Signing in…';error.textContent='';
+  try{
+    const session=await api('/ui/login',{method:'POST',body:JSON.stringify({
+      username:document.querySelector('#login-user').value,
+      password:document.querySelector('#login-password').value
+    })});
+    document.querySelector('#login-password').value='';
+    hideLogin({...session,authRequired:true});
+    await refreshAll();
+  }catch(err){
+    error.textContent=err.message==='invalid_credentials'?'Incorrect username or password.':err.message;
+  }finally{
+    button.disabled=false;button.textContent='Sign in';
+  }
+});
+
+document.querySelector('#logout-btn').addEventListener('click',async()=>{
+  try{await api('/ui/logout',{method:'POST'});}catch{}
+  showLogin();
+});
+
 document.addEventListener('click',async e=>{
   const nav=e.target.closest('[data-view]'); if(nav) activateView(nav.dataset.view);
   const goto=e.target.closest('[data-nav]'); if(goto) activateView(goto.dataset.nav);
@@ -217,9 +327,6 @@ document.addEventListener('click',async e=>{
   const evidence=e.target.closest('[data-evidence]'); if(evidence) showEvidence(evidence.dataset.evidence);
 });
 document.querySelector('#refresh-btn').addEventListener('click',()=>refreshAll(true).catch(err=>toast(err.message)));
-document.querySelector('#run-savings-btn').addEventListener('click',async()=>{state.savings=await api(`/v1/savings/run?tenantId=${TENANT}`,{method:'POST'});renderOverview();renderSecondaryViews();toast('Savings scan complete');});
+document.querySelector('#run-savings-btn').addEventListener('click',async()=>{const btn=document.querySelector('#run-savings-btn');btn.disabled=true;const original=btn.textContent;btn.textContent='Scanning…';try{await api(`/v1/savings/run?tenantId=${TENANT}`,{method:'POST'});await refreshAll();toast('Savings scan complete');}catch(error){toast(error.message);}finally{btn.disabled=false;btn.textContent=original;}});
 
-refreshAll().catch(err=>{
-  document.querySelector('#attention-list').innerHTML=`<div class="empty">Unable to load SpendOS: ${esc(err.message)}</div>`;
-  toast('SpendOS could not load data');
-});
+bootstrap();

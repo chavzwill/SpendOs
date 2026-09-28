@@ -5,28 +5,70 @@ const { openStore } = require('./store');
 const { ingestEvent } = require('./ingest');
 const { managementSnapshot, supplierPriceHistory } = require('./analytics');
 const { runSavingsEngine } = require('./engine');
-const { upsertBudget } = require('./budgets');
+const { upsertBudget, assessBudgets } = require('./budgets');
+const { listOpportunities } = require('./savings');
 const { targetCostSummary, targetPortfolio, allocationCoverage, targetTrend } = require('./cost-economics');
 const { recordAction, verifyOpportunity, opportunityLifecycle, verifiedSavingsRollup } = require('./savings-lifecycle');
 const { upsertSavingsTarget, savingsTargetPerformance, savingsAccountabilityAttention } = require('./savings-targets');
 const { savingsLeakageAnalysis } = require('./savings-leakage');
 const { refreshLeakageCases, updateLeakageCase, verifyLeakageClosure, leakageCaseDetail } = require('./savings-leakage-cases');
+const { createUiAuth, safeEqual } = require('./ui-auth');
 
 const port = Number(process.env.PORT || 4010);
 const apiKey = process.env.SPENDOS_API_KEY || '';
-if (process.env.NODE_ENV === 'production' && !apiKey) {
+const configuredTenantId = process.env.SPENDOS_TENANT_ID || 'total-tools';
+const production = process.env.NODE_ENV === 'production';
+if (production && !apiKey) {
   throw new Error('SPENDOS_API_KEY is required when NODE_ENV=production');
 }
+const uiAuth = createUiAuth({
+  username: process.env.SPENDOS_UI_USER || 'admin',
+  password: process.env.SPENDOS_UI_PASSWORD || '',
+  secret: process.env.SPENDOS_SESSION_SECRET || '',
+  production
+});
 const db = openStore();
 
-function send(res, status, body) {
-  res.writeHead(status, { 'content-type': 'application/json' });
+function send(res, status, body, headers = {}) {
+  res.writeHead(status, { 'content-type': 'application/json', ...headers });
   res.end(JSON.stringify(body));
 }
 
-function authorized(req) {
-  if (!apiKey) return true;
-  return req.headers.authorization === `Bearer ${apiKey}`;
+function bearerAuthorized(req) {
+  if (!apiKey) return !production;
+  return safeEqual(req.headers.authorization || '', `Bearer ${apiKey}`);
+}
+
+function managementAuthorized(req) {
+  return bearerAuthorized(req) || Boolean(uiAuth.sessionFromRequest(req));
+}
+
+function parseSqliteUtc(value) {
+  if (!value) return null;
+  const iso = String(value).includes('T') ? String(value) : String(value).replace(' ', 'T') + 'Z';
+  const ms = Date.parse(iso);
+  return Number.isFinite(ms) ? ms : null;
+}
+
+function systemStatus(tenantId) {
+  const totals = db.prepare(`SELECT COUNT(*) event_count, MAX(received_at) last_received_at,
+    MAX(occurred_at) last_occurred_at FROM spend_events WHERE tenant_id=?`).get(tenantId);
+  const last = db.prepare(`SELECT source,event_type,source_record_id,source_version,received_at,occurred_at
+    FROM spend_events WHERE tenant_id=? ORDER BY received_at DESC,id DESC LIMIT 1`).get(tenantId);
+  const eventCount = Number(totals.event_count || 0);
+  const lastReceivedMs = parseSqliteUtc(totals.last_received_at);
+  const ageHours = lastReceivedMs == null ? null : Math.max(0, (Date.now() - lastReceivedMs) / 3600000);
+  const connectionState = eventCount === 0 ? 'waiting_for_evidence' : ageHours != null && ageHours > 24 ? 'stale' : 'connected';
+  return {
+    tenantId,
+    configuredTenantId,
+    connectionState,
+    eventCount,
+    lastReceivedAt: totals.last_received_at || null,
+    lastOccurredAt: totals.last_occurred_at || null,
+    lastEvent: last || null,
+    apiAuthenticationConfigured: Boolean(apiKey)
+  };
 }
 
 function staticAsset(req, res) {
@@ -48,9 +90,38 @@ const server = http.createServer((req, res) => {
   if (req.method === 'GET' && req.url === '/health') {
     return send(res, 200, { ok: true, service: 'spend-os' });
   }
-  if (!authorized(req)) return send(res, 401, { error: 'unauthorized' });
+
+  if (req.method === 'GET' && req.url === '/ui/session') {
+    const session=uiAuth.sessionFromRequest(req);
+    return send(res,200,{
+      authenticated:Boolean(session),
+      user:session?.user||null,
+      mode:session?.mode||null,
+      authRequired:uiAuth.enabled
+    });
+  }
+
+  if (req.method === 'POST' && req.url === '/ui/login') {
+    let body='';
+    req.on('data',chunk=>{body+=chunk;});
+    req.on('end',()=>{
+      try{
+        const input=JSON.parse(body||'{}');
+        const session=uiAuth.authenticate(String(input.username||''),String(input.password||''));
+        if(!session) return send(res,401,{error:'invalid_credentials'});
+        const cookie=uiAuth.sessionCookie(session.user);
+        return send(res,200,{authenticated:true,user:session.user,mode:session.mode},cookie?{'set-cookie':cookie}:{});
+      }catch(error){return send(res,400,{error:'invalid_request'});}
+    });
+    return;
+  }
+
+  if (req.method === 'POST' && req.url === '/ui/logout') {
+    return send(res,200,{authenticated:false},{'set-cookie':uiAuth.clearCookie()});
+  }
 
   if (req.method === 'POST' && req.url === '/v1/events') {
+    if (!bearerAuthorized(req)) return send(res, 401, { error: 'unauthorized' });
     let body = '';
     req.on('data', chunk => { body += chunk; });
     req.on('end', () => {
@@ -67,6 +138,23 @@ const server = http.createServer((req, res) => {
       }
     });
     return;
+  }
+
+  if (!managementAuthorized(req)) return send(res, 401, { error: 'unauthorized' });
+
+  const systemStatusMatch = req.url.match(/^\/v1\/system\/status\?tenantId=([^&]+)$/);
+  if (req.method === 'GET' && systemStatusMatch) {
+    return send(res, 200, systemStatus(decodeURIComponent(systemStatusMatch[1])));
+  }
+
+  const opportunitiesListMatch = req.url.match(/^\/v1\/savings\/opportunities\?tenantId=([^&]+)$/);
+  if (req.method === 'GET' && opportunitiesListMatch) {
+    return send(res, 200, listOpportunities(db, decodeURIComponent(opportunitiesListMatch[1])));
+  }
+
+  const budgetStatusMatch = req.url.match(/^\/v1\/budgets\/status\?tenantId=([^&]+)$/);
+  if (req.method === 'GET' && budgetStatusMatch) {
+    return send(res, 200, assessBudgets(db, decodeURIComponent(budgetStatusMatch[1])));
   }
 
   const dashboardMatch = req.url.match(/^\/v1\/management\/dashboard\?tenantId=([^&]+)$/);

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#0b1020">
+  <meta name="theme-color" content="#0d5c4e">
   <title>SpendOS — Spend Control Center</title>
   <link rel="stylesheet" href="/styles.css">
 </head>
@@ -11,8 +11,8 @@
   <div class="app-shell">
     <aside class="sidebar">
       <div class="brand">
-        <div class="brand-mark">S</div>
-        <div><strong>SpendOS</strong><span>Control Center</span></div>
+        <div class="brand-mark">TT</div>
+        <div><strong>SpendOS</strong><span>Total Tools spend control</span></div>
       </div>
       <nav class="nav">
         <button class="nav-item active" data-view="overview"><span>⌂</span>Overview</button>
@@ -23,26 +23,27 @@
         <button class="nav-item" data-view="budgets"><span>◎</span>Budgets</button>
         <button class="nav-item" data-view="recoveries"><span>↺</span>Recoveries</button>
       </nav>
-      <div class="sidebar-foot">
-        <div class="sync-dot"></div>
-        <div><strong>POS connected</strong><span>Evidence sync healthy</span></div>
+      <div class="sidebar-foot" id="connection-card">
+        <div class="sync-dot" id="connection-dot"></div>
+        <div><strong id="connection-label">Checking POS connection</strong><span id="connection-detail">Reading event stream…</span></div>
       </div>
     </aside>
 
     <main class="main">
       <header class="topbar">
         <div>
-          <p class="eyebrow">TOTAL TOOLS · MANAGEMENT</p>
+          <p class="eyebrow">TOTAL TOOLS · SPENDOS</p>
           <h1 id="page-title">Spend control center</h1>
         </div>
         <div class="top-actions">
-          <div class="status-pill"><span></span> Live evidence</div>
+          <div class="status-pill" id="system-status-pill"><span></span><b id="system-status-text">Checking evidence</b></div>
+          <button class="text-btn auth-btn" id="logout-btn" hidden>Sign out</button>
           <button class="icon-btn" id="refresh-btn" aria-label="Refresh data">↻</button>
-          <div class="avatar">CW</div>
         </div>
       </header>
 
       <section id="view-overview" class="view active">
+        <div id="connection-banner" class="connection-banner" hidden></div>
         <div class="hero-grid">
           <article class="hero-card">
             <div class="hero-top">
@@ -50,7 +51,7 @@
                 <p class="eyebrow">ACTUAL SPEND</p>
                 <div class="hero-value" id="actual-spend">$0</div>
               </div>
-              <div class="period-chip">Current evidence</div>
+              <div class="period-chip" id="evidence-period">No evidence yet</div>
             </div>
             <div class="hero-metrics">
               <div><span>Requested</span><strong id="requested-spend">$0</strong></div>
@@ -121,6 +122,19 @@
       <section id="view-budgets" class="view"></section>
       <section id="view-recoveries" class="view"></section>
     </main>
+  </div>
+
+  <div id="login-gate" class="login-gate" hidden>
+    <form id="login-form" class="login-card" autocomplete="on">
+      <div class="login-mark">TT</div>
+      <p class="eyebrow">TOTAL TOOLS · SPENDOS</p>
+      <h2>Sign in to SpendOS</h2>
+      <p class="login-copy">Management access is separate from the POS integration key.</p>
+      <label>Username<input id="login-user" name="username" autocomplete="username" required></label>
+      <label>Password<input id="login-password" name="password" type="password" autocomplete="current-password" required></label>
+      <button class="primary-btn login-submit" type="submit">Sign in</button>
+      <p id="login-error" class="login-error" role="alert"></p>
+    </form>
   </div>
 
   <div id="toast" class="toast" role="status"></div>

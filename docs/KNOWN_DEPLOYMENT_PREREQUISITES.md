@@ -25,7 +25,7 @@ These items do not invalidate the code handoff, but they must be resolved or exp
    The reference POS worker/proxy fetch calls were previously noted as lacking explicit application timeouts. The outbox uses a sending lease but the reviewed implementation did not have a lease-owner token guarding completion updates. Qualify slow-request, retry and overlapping-worker behavior before production scheduling.
 
 5. **Authentication**
-   The SpendOS service now refuses to start in `NODE_ENV=production` without `SPENDOS_API_KEY`. Keep the key server-side only and rotate it through normal secret-management procedures.
+   The SpendOS service refuses to start in `NODE_ENV=production` without `SPENDOS_API_KEY`, `SPENDOS_UI_PASSWORD`, and a 32+ character `SPENDOS_SESSION_SECRET`. Keep the POS bearer key server-side only. Browser management uses a separate signed HttpOnly SameSite session and must never receive the POS key.
 
 6. **Ingress and TLS**
    SpendOS listens on loopback by default. Expose it only through an authenticated, TLS-protected ingress/reverse proxy or equivalent trusted service network.

@@ -9,7 +9,7 @@ This file is the starting point for the next developer or AI agent.
 The SpendOS analytical service and standalone management control-center UI are implemented and locally qualified. At handoff:
 - the responsive UI is served from `/` and reads from the real SpendOS APIs;
 - `npm run check` passes;
-- 29 core tests pass with zero failures;
+- 35 automated tests pass with zero failures;
 - the Total Tools POS SpendOS connector has 7/7 required local certification gates passing;
 - certification logs are committed under `docs/certification/`;
 - the POS integration contract is committed under `docs/POS_INTEGRATION_GUIDE.md`;
@@ -74,20 +74,21 @@ A SpendOS recommendation must re-enter the POS through its normal permissioned w
 
 ## Verified behavior
 
-The current automated suite covers idempotent replay, stale-write rejection, same-version conflict detection, spend normalization, supplier pricing, cost allocations, actual-vs-requested costs, budget assessment, consumable variance, savings verification, evidence de-duplication, savings targets, accountability attention, leakage detection and verified leakage closure. The handoff also includes syntax qualification for the browser application and synthetic preview seeder.
+The current automated suite covers idempotent replay, stale-write rejection, same-version conflict detection, spend normalization, supplier pricing, cost allocations, actual-vs-requested costs, budget assessment, consumable variance, savings verification, evidence de-duplication, savings targets, accountability attention, leakage detection and verified leakage closure. The browser application is syntax-qualified and now uses only real SpendOS evidence; no synthetic preview seeder is part of the operational application.
 
 ## Recipient acceptance sequence
 
 1. Clone the repository and confirm `npm run check` passes before making changes.
 2. Read `docs/POS_INTEGRATION_GUIDE.md` before modifying event contracts.
 3. Review `docs/KNOWN_DEPLOYMENT_PREREQUISITES.md` before any production rollout.
-4. Provision a server-only `SPENDOS_API_KEY`; production mode refuses to start without one.
-5. Use a non-production database for integration validation.
-6. Verify POS transactional-outbox behavior and dead-letter operations.
-7. Perform a real TLS-protected POS-to-SpendOS interoperability test.
-8. Only then configure recurring delivery/scheduling and operational monitoring.
-9. Keep backups and restore procedures for the SpendOS SQLite database.
-10. Do not mark the integration live until every deployment prerequisite is resolved.
+4. Provision a server-only `SPENDOS_API_KEY`, a strong management UI password and a 32+ character `SPENDOS_SESSION_SECRET`; production mode refuses to start without them.
+5. Keep the POS bearer key server-side; browser management uses the separate signed HttpOnly session.
+6. Use a non-production database for integration validation.
+7. Verify POS transactional-outbox behavior and dead-letter operations.
+8. Perform a real TLS-protected POS-to-SpendOS interoperability test.
+9. Only then configure recurring delivery/scheduling and operational monitoring.
+10. Keep backups and restore procedures for the SpendOS SQLite database.
+11. Do not mark the integration live until every deployment prerequisite is resolved.
 
 ## Total Tools reference
 

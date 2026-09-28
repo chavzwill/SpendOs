@@ -6,7 +6,7 @@ SpendOS is a standalone spend-intelligence and control service that connects to 
 
 Prepared for handoff on 2026-09-28.
 - Core qualification: `npm run check` passes.
-- Core tests: 29/29 passing.
+- Automated tests: 35/35 passing.
 - Total Tools POS connector certification: 7/7 required gates passing.
 - Git working tree is intended to be clean at handoff.
 - Production deployments must complete the prerequisites in `docs/KNOWN_DEPLOYMENT_PREREQUISITES.md`.
@@ -41,18 +41,14 @@ POS business transaction
 
 ## Standalone management UI
 
-SpendOS now includes a responsive management control-center UI served from `/`. It uses the real SpendOS API for spend, supplier, cost-object, savings, target and leakage views. The UI is management/advisory; POS financial authority remains unchanged.
+SpendOS includes a responsive Total Tools management control center served from `/`. It uses the real SpendOS database and API for spend, supplier, cost-object, savings, target and leakage views. There is no demo seeder or synthetic dashboard dataset in the operational application.
 
-For an isolated populated preview:
+The UI reports its POS evidence state from accepted SpendOS events:
+- `connected` when recent POS evidence has been received;
+- `stale` when the latest accepted event is more than 24 hours old;
+- `waiting_for_evidence` when no real POS spend events have arrived yet.
 
-```powershell
-npm run preview:seed
-$env:SPENDOS_DB="./spendos-preview.db"
-$env:PORT="4188"
-node src/server.js
-```
-
-Then open `http://127.0.0.1:4188` on the host computer. The preview database contains synthetic data only and is ignored by Git.
+Opening the dashboard is read-only. Savings analysis runs only when a user intentionally selects **Run savings scan**.
 
 ## Requirements
 
@@ -70,7 +66,16 @@ $env:SPENDOS_DB="./spendos.db"
 node src/server.js
 ```
 
-The service binds to `127.0.0.1` by default. Put it behind an authenticated TLS reverse proxy or equivalent production ingress. When `NODE_ENV=production`, `SPENDOS_API_KEY` is mandatory.
+The service binds to `127.0.0.1` by default. Put it behind an authenticated TLS reverse proxy or equivalent production ingress.
+
+### Authentication
+
+SpendOS separates machine and human credentials:
+- `SPENDOS_API_KEY` authenticates POS/server-to-server event delivery and must never be exposed to the browser.
+- `SPENDOS_UI_USER` and `SPENDOS_UI_PASSWORD` authenticate the management UI.
+- `SPENDOS_SESSION_SECRET` signs the HttpOnly, SameSite management session cookie.
+
+When `NODE_ENV=production`, the API key, UI password and a session secret of at least 32 characters are mandatory. In local development, the loopback UI may run in open-local mode when UI credentials are intentionally omitted.
 
 ## Qualification
 
@@ -84,7 +89,10 @@ This performs syntax qualification and the full automated test suite.
 
 Core route families include:
 - `POST /v1/events`
+- `GET /v1/system/status`
 - `GET /v1/management/dashboard`
+- `GET /v1/savings/opportunities`
+- `GET /v1/budgets/status`
 - `GET /v1/suppliers/prices`
 - `GET /v1/costs/target`
 - `GET /v1/costs/portfolio`
