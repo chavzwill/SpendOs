@@ -16,7 +16,7 @@ function targetCostSummary(db, tenantId, targetType, targetId) {
   const totals=db.prepare(`SELECT
     COALESCE(SUM(CASE WHEN a.state='requested' THEN a.amount ELSE 0 END),0) requested,
     COALESCE(SUM(CASE WHEN a.state='actual' THEN a.amount ELSE 0 END),0) actual,
-    COUNT(CASE WHEN a.state='actual' AND a.valuation_status!='fully_valued' THEN 1 END) incomplete_actual_lines
+    COUNT(CASE WHEN a.state='actual' AND a.valuation_status NOT IN ('fully_valued','actual') THEN 1 END) incomplete_actual_lines
     FROM allocation_facts a
     WHERE a.tenant_id=? AND a.target_type=? AND COALESCE(a.target_id,'')=COALESCE(?,'') AND ${latest}`)
     .get(tenantId,targetType,targetId);
@@ -51,7 +51,7 @@ function targetPortfolio(db, tenantId, targetType) {
     a.target_id,a.target_label,a.currency,
     SUM(CASE WHEN a.state='requested' THEN a.amount ELSE 0 END) requested_cost,
     SUM(CASE WHEN a.state='actual' THEN a.amount ELSE 0 END) actual_cost,
-    COUNT(CASE WHEN a.state='actual' AND a.valuation_status!='fully_valued' THEN 1 END) incomplete_actual_lines,
+    COUNT(CASE WHEN a.state='actual' AND a.valuation_status NOT IN ('fully_valued','actual') THEN 1 END) incomplete_actual_lines,
     COUNT(*) line_count,
     MAX(a.occurred_at) last_activity
     FROM allocation_facts a
@@ -75,7 +75,7 @@ function allocationCoverage(db, tenantId) {
   const totals=db.prepare(`SELECT
     COUNT(*) total_lines,
     SUM(CASE WHEN a.target_type='general_overhead' THEN 1 ELSE 0 END) overhead_lines,
-    SUM(CASE WHEN a.state='actual' AND a.valuation_status!='fully_valued' THEN 1 ELSE 0 END) incomplete_actual_lines,
+    SUM(CASE WHEN a.state='actual' AND a.valuation_status NOT IN ('fully_valued','actual') THEN 1 ELSE 0 END) incomplete_actual_lines,
     SUM(CASE WHEN a.state='actual' THEN a.amount ELSE 0 END) actual_allocated_value
     FROM allocation_facts a WHERE a.tenant_id=? AND ${latest}`).get(tenantId);
   return {

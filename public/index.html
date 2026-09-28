@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#0b1020">
+  <title>SpendOS — Spend Control Center</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">S</div>
+        <div><strong>SpendOS</strong><span>Control Center</span></div>
+      </div>
+      <nav class="nav">
+        <button class="nav-item active" data-view="overview"><span>⌂</span>Overview</button>
+        <button class="nav-item" data-view="spending"><span>◫</span>Spending</button>
+        <button class="nav-item" data-view="assets"><span>◇</span>Assets & Equipment</button>
+        <button class="nav-item" data-view="suppliers"><span>⇄</span>Suppliers</button>
+        <button class="nav-item" data-view="savings"><span>↗</span>Savings</button>
+        <button class="nav-item" data-view="budgets"><span>◎</span>Budgets</button>
+        <button class="nav-item" data-view="recoveries"><span>↺</span>Recoveries</button>
+      </nav>
+      <div class="sidebar-foot">
+        <div class="sync-dot"></div>
+        <div><strong>POS connected</strong><span>Evidence sync healthy</span></div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">TOTAL TOOLS · MANAGEMENT</p>
+          <h1 id="page-title">Spend control center</h1>
+        </div>
+        <div class="top-actions">
+          <div class="status-pill"><span></span> Live evidence</div>
+          <button class="icon-btn" id="refresh-btn" aria-label="Refresh data">↻</button>
+          <div class="avatar">CW</div>
+        </div>
+      </header>
+
+      <section id="view-overview" class="view active">
+        <div class="hero-grid">
+          <article class="hero-card">
+            <div class="hero-top">
+              <div>
+                <p class="eyebrow">ACTUAL SPEND</p>
+                <div class="hero-value" id="actual-spend">$0</div>
+              </div>
+              <div class="period-chip">Current evidence</div>
+            </div>
+            <div class="hero-metrics">
+              <div><span>Requested</span><strong id="requested-spend">$0</strong></div>
+              <div><span>Allocated</span><strong id="allocated-spend">$0</strong></div>
+              <div><span>Verified savings</span><strong id="verified-savings">$0</strong></div>
+            </div>
+            <div class="hero-strip">
+              <span>Spend intelligence is evidence-backed. No forecasted savings are counted.</span>
+            </div>
+          </article>
+
+          <article class="attention-card">
+            <div class="section-heading compact">
+              <div><p class="eyebrow">ATTENTION</p><h2>What needs action</h2></div>
+              <span class="count-badge" id="attention-count">0</span>
+            </div>
+            <div id="attention-list" class="attention-list"></div>
+          </article>
+        </div>
+
+        <div class="kpi-grid">
+          <article class="kpi"><span>Net leakage / loss</span><strong id="net-loss">$0</strong><small>Loss less recovered value</small></article>
+          <article class="kpi"><span>Savings opportunities</span><strong id="opportunity-count">0</strong><small>Evidence-backed opportunities</small></article>
+          <article class="kpi"><span>Allocation coverage</span><strong id="coverage-rate">—</strong><small id="coverage-note">No allocation evidence</small></article>
+          <article class="kpi"><span>Leakage cases</span><strong id="leakage-count">0</strong><small>Actions that did not stick</small></article>
+        </div>
+
+        <div class="content-grid">
+          <article class="panel spend-panel">
+            <div class="section-heading">
+              <div><p class="eyebrow">COST OBJECTS</p><h2>Where the money is going</h2></div>
+              <div class="segmented">
+                <button class="segment active" data-target-type="vehicle">Vehicles</button>
+                <button class="segment" data-target-type="rental_asset">Rental</button>
+                <button class="segment" data-target-type="department">Departments</button>
+              </div>
+            </div>
+            <div id="cost-bars" class="cost-bars"></div>
+          </article>
+
+          <article class="panel">
+            <div class="section-heading">
+              <div><p class="eyebrow">SUPPLIERS</p><h2>Spend concentration</h2></div>
+              <button class="text-btn" data-nav="suppliers">View suppliers →</button>
+            </div>
+            <div id="supplier-list" class="supplier-list"></div>
+          </article>
+        </div>
+
+        <article class="panel">
+          <div class="section-heading">
+            <div><p class="eyebrow">SAVINGS ENGINE</p><h2>Best opportunities right now</h2></div>
+            <button class="primary-btn" id="run-savings-btn">Run savings scan</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Opportunity</th><th>Evidence</th><th>Potential</th><th>Status</th><th></th></tr></thead>
+              <tbody id="opportunity-table"></tbody>
+            </table>
+          </div>
+        </article>
+      </section>
+
+      <section id="view-spending" class="view"></section>
+      <section id="view-assets" class="view"></section>
+      <section id="view-suppliers" class="view"></section>
+      <section id="view-savings" class="view"></section>
+      <section id="view-budgets" class="view"></section>
+      <section id="view-recoveries" class="view"></section>
+    </main>
+  </div>
+
+  <div id="toast" class="toast" role="status"></div>
+  <script src="/app.js"></script>
+</body>
+</html>

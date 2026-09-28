@@ -7,3 +7,6 @@
 node_modules/
 data-*/
 uploads-*/
+.edge-*/
+spendos-preview*.png
+.tmp-*.mjs

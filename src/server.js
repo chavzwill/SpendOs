@@ -1,4 +1,6 @@
 const http = require('http');
+const fs = require('fs');
+const path = require('path');
 const { openStore } = require('./store');
 const { ingestEvent } = require('./ingest');
 const { managementSnapshot, supplierPriceHistory } = require('./analytics');
@@ -27,7 +29,22 @@ function authorized(req) {
   return req.headers.authorization === `Bearer ${apiKey}`;
 }
 
+function staticAsset(req, res) {
+  const assets = {
+    '/': ['index.html', 'text/html; charset=utf-8'],
+    '/styles.css': ['styles.css', 'text/css; charset=utf-8'],
+    '/app.js': ['app.js', 'application/javascript; charset=utf-8'],
+  };
+  const asset = assets[req.url];
+  if (!asset || req.method !== 'GET') return false;
+  const filename = path.join(__dirname, '..', 'public', asset[0]);
+  res.writeHead(200, { 'content-type': asset[1], 'cache-control': 'no-store' });
+  res.end(fs.readFileSync(filename));
+  return true;
+}
+
 const server = http.createServer((req, res) => {
+  if (staticAsset(req, res)) return;
   if (req.method === 'GET' && req.url === '/health') {
     return send(res, 200, { ok: true, service: 'spend-os' });
   }

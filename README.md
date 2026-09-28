@@ -39,6 +39,21 @@ POS business transaction
   -> any financial action returns through the POS workflow
 ```
 
+## Standalone management UI
+
+SpendOS now includes a responsive management control-center UI served from `/`. It uses the real SpendOS API for spend, supplier, cost-object, savings, target and leakage views. The UI is management/advisory; POS financial authority remains unchanged.
+
+For an isolated populated preview:
+
+```powershell
+npm run preview:seed
+$env:SPENDOS_DB="./spendos-preview.db"
+$env:PORT="4188"
+node src/server.js
+```
+
+Then open `http://127.0.0.1:4188` on the host computer. The preview database contains synthetic data only and is ignored by Git.
+
 ## Requirements
 
 - Node.js 24 or newer

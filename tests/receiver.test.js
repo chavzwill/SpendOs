@@ -150,6 +150,8 @@ test('purchase receipt becomes actual target cost without replacing request inte
   const summary=targetCostSummary(db,'total-tools','rental_asset','88');
   assert.equal(summary.requestedCost,1000);
   assert.equal(summary.actualCost,400);
+  assert.equal(summary.incompleteActualLines,0);
+  assert.equal(allocationCoverage(db,'total-tools').incompleteActualLines,0);
 });
 
 test('company expenditure and internal consumption are not double-counted', () => {

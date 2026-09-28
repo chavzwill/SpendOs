@@ -6,7 +6,8 @@ This file is the starting point for the next developer or AI agent.
 
 ## Current delivery state
 
-The SpendOS analytical service is implemented and locally qualified. At handoff:
+The SpendOS analytical service and standalone management control-center UI are implemented and locally qualified. At handoff:
+- the responsive UI is served from `/` and reads from the real SpendOS APIs;
 - `npm run check` passes;
 - 29 core tests pass with zero failures;
 - the Total Tools POS SpendOS connector has 7/7 required local certification gates passing;
@@ -73,7 +74,7 @@ A SpendOS recommendation must re-enter the POS through its normal permissioned w
 
 ## Verified behavior
 
-The current automated suite covers idempotent replay, stale-write rejection, same-version conflict detection, spend normalization, supplier pricing, cost allocations, actual-vs-requested costs, budget assessment, consumable variance, savings verification, evidence de-duplication, savings targets, accountability attention, leakage detection and verified leakage closure.
+The current automated suite covers idempotent replay, stale-write rejection, same-version conflict detection, spend normalization, supplier pricing, cost allocations, actual-vs-requested costs, budget assessment, consumable variance, savings verification, evidence de-duplication, savings targets, accountability attention, leakage detection and verified leakage closure. The handoff also includes syntax qualification for the browser application and synthetic preview seeder.
 
 ## Recipient acceptance sequence
 
