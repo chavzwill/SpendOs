@@ -14,14 +14,14 @@
         <div class="brand-mark">TT</div>
         <div><strong>SpendOS</strong><span>Total Tools spend control</span></div>
       </div>
-      <nav class="nav">
-        <button class="nav-item active" data-view="overview"><span>⌂</span>Overview</button>
-        <button class="nav-item" data-view="spending"><span>◫</span>Spending</button>
-        <button class="nav-item" data-view="assets"><span>◇</span>Assets & Equipment</button>
-        <button class="nav-item" data-view="suppliers"><span>⇄</span>Suppliers</button>
-        <button class="nav-item" data-view="savings"><span>↗</span>Savings</button>
-        <button class="nav-item" data-view="budgets"><span>◎</span>Budgets</button>
-        <button class="nav-item" data-view="recoveries"><span>↺</span>Recoveries</button>
+      <nav class="nav" aria-label="Main navigation">
+        <button class="nav-item active" data-view="overview" aria-current="page"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg><span class="nav-label">Overview</span></button>
+        <button class="nav-item" data-view="spending"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 4h16v17l-4-2-4 2-4-2-4 2V4Z"/><path d="M8 8h8M8 12h5"/></svg><span class="nav-label">Spending</span></button>
+        <button class="nav-item" data-view="assets"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m12 3 9 5-9 5-9-5 9-5ZM3 8v9l9 5 9-5V8M12 13v9M7.5 5.5l9 5"/></svg><span class="nav-label">Assets & Equipment</span></button>
+        <button class="nav-item" data-view="suppliers"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 21V7l8-4v18M12 9h8v12M2 21h20M7 8v1M7 12v1M7 16v1M16 12v1M16 16v1"/></svg><span class="nav-label">Suppliers</span></button>
+        <button class="nav-item" data-view="savings"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 17 9 11l4 4L21 7M15 7h6v6"/></svg><span class="nav-label">Savings</span></button>
+        <button class="nav-item" data-view="budgets"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg><span class="nav-label">Budgets</span></button>
+        <button class="nav-item" data-view="recoveries"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 10a9 9 0 1 1 2 8M3 4v6h6M14 8h-3a2 2 0 0 0 0 4h2a2 2 0 0 1 0 4h-3M12 6v2M12 16v2"/></svg><span class="nav-label">Recoveries</span></button>
       </nav>
       <div class="sidebar-foot" id="connection-card">
         <div class="sync-dot" id="connection-dot"></div>
@@ -38,7 +38,7 @@
         <div class="top-actions">
           <div class="status-pill" id="system-status-pill"><span></span><b id="system-status-text">Checking evidence</b></div>
           <button class="text-btn auth-btn" id="logout-btn" hidden>Sign out</button>
-          <button class="icon-btn" id="refresh-btn" aria-label="Refresh data">↻</button>
+          <button class="icon-btn" id="refresh-btn" aria-label="Refresh data"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20 7a8 8 0 0 0-13-2L3 9M3 3v6h6M4 17a8 8 0 0 0 13 2l4-4M15 15h6v6"/></svg></button>
         </div>
       </header>
 

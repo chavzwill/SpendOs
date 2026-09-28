@@ -262,7 +262,7 @@ function showEvidence(id){
 
 function activateView(name){
   document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id===`view-${name}`));
-  document.querySelectorAll('.nav-item').forEach(v=>v.classList.toggle('active',v.dataset.view===name));
+  document.querySelectorAll('.nav-item').forEach(v=>{const active=v.dataset.view===name;v.classList.toggle('active',active);if(active)v.setAttribute('aria-current','page');else v.removeAttribute('aria-current');});
   const labels={overview:'Spend control center',spending:'Company spending',assets:'Assets & equipment',suppliers:'Supplier intelligence',savings:'Savings & leakage',budgets:'Budgets & targets',recoveries:'Supplier recoveries'};
   document.querySelector('#page-title').textContent=labels[name]||'SpendOS';
 }
