@@ -1,0 +1,627 @@
+Syntax OK: app-shell.js
+Syntax OK: shell-deferred.js
+Syntax OK: workspace-loader-hardening.js
+Syntax OK: total-tools-identity.js
+Syntax OK: reports-shell-bridge.js
+Syntax OK: customer-programs-shell-bridge.js
+Syntax OK: customer-programs-workspace.js
+Syntax OK: warehouse-shell-bridge.js
+Syntax OK: warehouse-operations-workspace.js
+Syntax OK: cash-drawer-shell-bridge.js
+Syntax OK: cash-drawer-workspace.js
+Syntax OK: accounts-receivable-shell-bridge.js
+Syntax OK: accounts-receivable-workspace.js
+Syntax OK: commissions-shell-bridge.js
+Syntax OK: commissions-workspace.js
+Syntax OK: ecommerce-operations-shell-bridge.js
+Syntax OK: ecommerce-operations-workspace.js
+Syntax OK: integration-admin-shell-bridge.js
+Syntax OK: integration-admin-workspace.js
+Syntax OK: suppliers-shell-bridge.js
+Syntax OK: suppliers-workspace.js
+Syntax OK: catalog-admin-shell-bridge.js
+Syntax OK: catalog-admin-workspace.js
+Syntax OK: denominations-shell-bridge.js
+Syntax OK: denominations-workspace.js
+Syntax OK: settings-workspace.js
+Syntax OK: quotations-workspace.js
+Syntax OK: layaway-workspace.js
+Syntax OK: promotions-workspace.js
+Syntax OK: predictive-lookup.js
+Syntax OK: catalog-picker.js
+Syntax OK: catalog-workflow-enhancer.js
+Syntax OK: sales-workspace.js
+Syntax OK: pos-margin-override-ui.js
+Syntax OK: pos-uom-barcode-scanner.js
+Syntax OK: held-sales-workspace.js
+Syntax OK: held-sales-recall-context.js
+Syntax OK: cashier-controls-workspace.js
+Syntax OK: customer-crm-workspace.js
+Syntax OK: admin-workspace.js
+Syntax OK: rbac-workspace.js
+Syntax OK: transfers-workspace.js
+Syntax OK: work-orders-workspace.js
+Syntax OK: service-concessions-ui.js
+Syntax OK: service-refunds-ui.js
+Syntax OK: inventory-workspace.js
+Syntax OK: purchasing-workspace.js
+Syntax OK: purchasing-approval-ui-guard.js
+Syntax OK: purchasing-uom-enhancer.js
+Syntax OK: purchase-fast-receiving.js
+Syntax OK: stock-finder-ui.js
+Syntax OK: stock-finder-sell-action.js
+Syntax OK: purchase-quote-import-workspace.js
+Syntax OK: rentals-workspace.js
+Syntax OK: rental-fleet-management.js
+Syntax OK: rental-fleet-disposal.js
+Syntax OK: rental-fleet-transfer.js
+Syntax OK: logistics-commercial-handoff.js
+Syntax OK: logistics-field-execution.js
+Syntax OK: logistics-route-planning.js
+Syntax OK: logistics-location-intelligence.js
+Syntax OK: uom-commercial-experience.js
+Syntax OK: client-diagnostics.js
+Syntax OK: pos-guide-map.js
+Syntax OK: guided-mode.js
+Syntax OK: guided-mode-orchestrator.js
+Syntax OK: guided-mode-access.js
+Syntax OK: purchase-order-document-context.js
+Syntax OK: held-sales-recall-context.js
+Syntax OK: guided-mode-completion.js
+Syntax OK: guided-mode-role-context.js
+Syntax OK: guided-mode-record-context.js
+Syntax OK: guided-mode-exact-action.js
+Syntax OK: guided-mode-exact-fallback.js
+Syntax OK: guided-mode-hardening.js
+Syntax OK: guided-mode-integrity.js
+Syntax OK: guided-mode-adversarial.js
+Syntax OK: guided-mode-qa.js
+Syntax OK: operations-attention-center.js
+Syntax OK: technician-compensation.js
+Syntax OK: stock-rebalancing.js
+Syntax OK: operational-reports.js
+Syntax OK: repair-operations.js
+Syntax OK: repair-communications.js
+Syntax OK: repair-notifications.js
+Syntax OK: repair-authorizations.js
+Syntax OK: repair-parts-integrity.js
+Syntax OK: inventory-intelligence.js
+Syntax OK: logistics-intelligence.js
+Syntax OK: scheduling-intelligence.js
+Syntax OK: accounting-intelligence.js
+Syntax OK: financial-controls-intelligence.js
+Syntax OK: supplier-ledger.js
+Syntax OK: settlement-reconciliation.js
+Syntax OK: accounting-ledger.js
+Syntax OK: pos-upgrade-navigation.js
+Syntax OK: navigation-shell.js
+Syntax OK: role-workspace.js
+Syntax OK: employee-workspace-home.js
+Syntax OK: employee-assist-ui.js
+Syntax OK: department-approvals-ui.js
+Syntax OK: department-approvals-guide-me.js
+Syntax OK: login-controller.js
+Syntax OK: legacy-pos-app.js
+PASS Commercial logistics handoff: commercial handoff is mounted inside logistics
+PASS Commercial logistics handoff: dispatch source documents preserve immutable commercial snapshots
+PASS Commercial logistics handoff: purchase orders can create supplier pickup jobs
+PASS Commercial logistics handoff: supplier pickup carries supplier identity contact and address
+PASS Commercial logistics handoff: supplier pickup requires usable supplier address
+PASS Commercial logistics handoff: supplier pickup destination is the receiving branch
+PASS Commercial logistics handoff: draft or cancelled PO cannot silently enter dispatch
+PASS Commercial logistics handoff: PO items are frozen into dispatch evidence
+PASS Commercial logistics handoff: completed sales invoices can create customer delivery jobs
+PASS Commercial logistics handoff: sales delivery carries customer contact and address
+PASS Commercial logistics handoff: sales invoice items are frozen into dispatch evidence
+PASS Commercial logistics handoff: rental delivery and pickup are distinct dispatch jobs
+PASS Commercial logistics handoff: rental logistics respects configured delivery pickup requirements
+PASS Commercial logistics handoff: rental logistics prefers recorded rental delivery address
+PASS Commercial logistics handoff: rental invoice agreement and customer snapshot travel together
+PASS Commercial logistics handoff: duplicate open commercial dispatch jobs are idempotent
+PASS Commercial logistics handoff: commercial handoff records an auditable dispatch event
+PASS Commercial logistics handoff: dispatcher can retrieve the exact source document packet
+PASS Commercial logistics handoff: purchasing UI exposes PO dispatch handoff
+PASS Commercial logistics handoff: sales UI exposes invoice dispatch handoff
+PASS Commercial logistics handoff: rental UI exposes separate delivery and pickup handoffs
+PASS Commercial logistics handoff: dispatch UI surfaces document party contact and address packet
+PASS Commercial logistics handoff: dispatch packet exposes view and print document control
+PASS Commercial logistics handoff: printed document is rendered from immutable snapshot line items
+PASS Commercial logistics handoff: printed document explains snapshot immutability
+PASS Commercial logistics handoff: document renderer HTML-escapes commercial source values
+PASS Commercial logistics handoff: commercial handoff UI is deferred through the application shell
+Commercial logistics handoff contract OK (27 checks).
+PASS Dispatch field execution: field execution is mounted inside logistics
+PASS Dispatch field execution: dispatch vehicles have durable registry
+PASS Dispatch field execution: execution binds exact driver and vehicle
+PASS Dispatch field execution: only active employees can be assigned
+PASS Dispatch field execution: vehicle availability is enforced
+PASS Dispatch field execution: driver vehicle double-booking is blocked
+PASS Dispatch field execution: field lifecycle requires ordered origin departure and arrival
+PASS Dispatch field execution: physical pickup creates custody evidence
+PASS Dispatch field execution: destination arrival is distinct from completion
+PASS Dispatch field execution: dispatch proof supports pickup and delivery evidence
+PASS Dispatch field execution: proof supports recipient signature photo evidence and coordinates
+PASS Dispatch field execution: proof photos have size and type controls
+PASS Dispatch field execution: delivery completion requires proof
+PASS Dispatch field execution: completion releases the dispatch vehicle
+PASS Dispatch field execution: failed attempts require a reason
+PASS Dispatch field execution: failed attempts can be explicitly rescheduled
+PASS Dispatch field execution: reschedule rechecks vehicle availability
+PASS Dispatch field execution: reschedule rechecks driver vehicle conflicts
+PASS Dispatch field execution: supplier pickup does not impersonate PO receiving
+PASS Dispatch field execution: rental logistics does not bypass rental controls
+PASS Dispatch field execution: sales fulfillment only becomes delivered at completion
+PASS Dispatch field execution: command center exposes execution and vehicle context
+PASS Dispatch field execution: dispatcher UI can register a vehicle
+PASS Dispatch field execution: dispatcher UI assigns driver and vehicle together
+PASS Dispatch field execution: dispatcher UI follows ordered field stages
+PASS Dispatch field execution: dispatcher UI captures photo capable proof
+PASS Dispatch field execution: dispatcher UI supports failed attempt and reschedule
+PASS Dispatch field execution: field execution UI is deferred through shell
+Dispatch field execution contract OK (28 checks).
+PASS Logistics route planning: route planning mounted inside logistics
+PASS Logistics route planning: route guard executes before standalone field assignment
+PASS Logistics route planning: routes are durable first-class records
+PASS Logistics route planning: route stops map exact dispatch jobs
+PASS Logistics route planning: driver shifts are durable
+PASS Logistics route planning: shift creation requires active driver
+PASS Logistics route planning: route release requires driver vehicle and stops
+PASS Logistics route planning: vehicle weight capacity enforced
+PASS Logistics route planning: vehicle volume capacity enforced
+PASS Logistics route planning: driver shift window is checked
+PASS Logistics route planning: released route conflict checks other routes
+PASS Logistics route planning: route release also checks standalone field execution
+PASS Logistics route planning: standalone assignment cannot steal released route resources
+PASS Logistics route planning: released routed job cannot be individually assigned
+PASS Logistics route planning: in transit or closed job cannot be newly routed
+PASS Logistics route planning: active field execution blocks route replanning
+PASS Logistics route planning: draft routes support explicit stop sequencing
+PASS Logistics route planning: route release assigns driver vehicle and scheduled status to jobs
+PASS Logistics route planning: manifest preserves stop order loads and commercial route labels
+PASS Logistics route planning: planner does not fabricate road optimization
+PASS Logistics route planning: command center exposes route identity
+PASS Logistics route planning: route planner UI can create routes
+PASS Logistics route planning: route planner UI adds jobs with load estimates
+PASS Logistics route planning: route planner UI exposes release and manifest
+PASS Logistics route planning: route planner is deferred through shell
+Logistics route planning contract OK (25 checks).
+PASS Logistics route execution: route execution mounts before standalone field execution
+PASS Logistics route execution: route and stop executions are durable records
+PASS Logistics route execution: only released routes can start
+PASS Logistics route execution: route start activates exactly the first planned stop
+PASS Logistics route execution: active routed stop receives route driver and vehicle field execution
+PASS Logistics route execution: generic job status changes are blocked for routed jobs
+PASS Logistics route execution: only active routed stop can run field stages
+PASS Logistics route execution: proof is restricted to active routed stop
+PASS Logistics route execution: standalone complete fail and reschedule are blocked for routed jobs
+PASS Logistics route execution: route stop completion requires field arrival at destination
+PASS Logistics route execution: route stop completion requires delivery receipt proof
+PASS Logistics route execution: completed stop closes its field execution without releasing route vehicle
+PASS Logistics route execution: source synchronization preserves PO and rental control boundaries
+PASS Logistics route execution: sales source marks delivered only at completed routed stop
+PASS Logistics route execution: next stop activates only after current stop completion or explicit skip
+PASS Logistics route execution: skip requires explicit reason
+PASS Logistics route execution: skipped routed stop becomes delayed and failed field evidence
+PASS Logistics route execution: route cannot close while pending or active stops remain
+PASS Logistics route execution: vehicle releases only when route closes
+PASS Logistics route execution: route execution exposes remaining planned load
+PASS Logistics route execution: command center exposes active route stop context
+PASS Logistics route execution: planner can start released route
+PASS Logistics route execution: planner exposes ordered field actions
+PASS Logistics route execution: planner captures route delivery proof including photo
+PASS Logistics route execution: planner supports explicit stop completion skip and route closure
+Logistics route execution contract OK (25 checks).
+PASS Logistics location intelligence: location intelligence is mounted inside logistics
+PASS Logistics location intelligence: dispatch locations are durable normalized records
+PASS Logistics location intelligence: coordinates are optional until verified
+PASS Logistics location intelligence: coordinate ranges are validated
+PASS Logistics location intelligence: commercial handoff addresses backfill automatically
+PASS Logistics location intelligence: commercial backfill preserves frozen source snapshot
+PASS Logistics location intelligence: supplier and rental pickups reverse party branch direction
+PASS Logistics location intelligence: job locations bind exact origin and destination
+PASS Logistics location intelligence: service zones are durable with pricing fields
+PASS Logistics location intelligence: travel evidence is durable and typed
+PASS Logistics location intelligence: negative distance or travel time is rejected
+PASS Logistics location intelligence: route geography exposes exact stop coordinates
+PASS Logistics location intelligence: ETA requires verified coordinates
+PASS Logistics location intelligence: ETA requires travel evidence for route legs
+PASS Logistics location intelligence: command center exposes location readiness
+PASS Logistics location intelligence: command center refuses fabricated ETA claims
+PASS Logistics location intelligence: operator UI lists verified and unverified locations
+PASS Logistics location intelligence: operator UI can verify coordinates
+PASS Logistics location intelligence: operator UI can create service zones
+PASS Logistics location intelligence: operator UI inspects route geography evidence
+PASS Logistics location intelligence: location intelligence UI is deferred through shell
+Logistics location intelligence contract OK (21 checks).
+PASS Completion mode logistics: repair logistics is mounted through commercial dispatch
+PASS Completion mode logistics: repair handoff uses exact work order and customer equipment
+PASS Completion mode logistics: repair pickup and return are distinct job types
+PASS Completion mode logistics: cancelled repair cannot dispatch
+PASS Completion mode logistics: return dispatch requires release-stage processing and financial clearance
+PASS Completion mode logistics: repair handoff requires real customer and branch addresses
+PASS Completion mode logistics: duplicate open repair logistics jobs are reused
+PASS Completion mode logistics: repair dispatch snapshot preserves work order customer branch and equipment
+PASS Completion mode logistics: repair timeline receives dispatch handoff evidence
+PASS Completion mode logistics: repair UI only exposes pickup on early stages
+PASS Completion mode logistics: repair UI only exposes return at release stages
+PASS Completion mode logistics: print renderer recognizes repair work orders
+PASS Completion mode logistics: repair print packet preserves immutable snapshot wording
+PASS Completion mode logistics: verified locations expose free OpenStreetMap
+PASS Completion mode logistics: route stops expose free browser directions
+PASS Completion mode logistics: mapping explicitly avoids paid subscription dependency
+Completion mode logistics contract OK (16 checks).
+PASS Repair lifecycle certification: completion hardening is mounted before legacy work orders
+PASS Repair lifecycle certification: repair quality lifecycle is mounted
+PASS Repair lifecycle certification: formal repair authorizations are mounted
+PASS Repair lifecycle certification: repair parts hardening is mounted
+PASS Repair lifecycle certification: generic status changes cannot jump directly to payment or completion states
+PASS Repair lifecycle certification: assessment collection uses a dedicated transaction
+PASS Repair lifecycle certification: deposit collection uses a dedicated transaction
+PASS Repair lifecycle certification: formal estimate revisions gate legacy deposit work start
+PASS Repair lifecycle certification: estimate revisions supersede pending predecessors
+PASS Repair lifecycle certification: superseded estimates cannot be authorized
+PASS Repair lifecycle certification: authorization decisions preserve method and attributable party evidence
+PASS Repair lifecycle certification: completion requires documented diagnosis and repair notes
+PASS Repair lifecycle certification: completion requires actual repair tasks
+PASS Repair lifecycle certification: completion requires every task complete and attributable
+PASS Repair lifecycle certification: QC pass is mandatory for completion
+PASS Repair lifecycle certification: QC fail requires evidence
+PASS Repair lifecycle certification: parts completion uses consumption evidence not line presence alone
+PASS Repair lifecycle certification: customer supplied parts are excluded from company inventory consumption gate
+PASS Repair lifecycle certification: final customer release is restricted to awaiting pickup
+PASS Repair lifecycle certification: final release creates final payment evidence when money remains due
+PASS Repair lifecycle certification: there is no generic no-payment picked-up status path
+PASS Repair lifecycle certification: repair return dispatch cannot start from merely complete status
+PASS Repair lifecycle certification: repair return dispatch checks outstanding balance
+PASS Repair lifecycle certification: repair intake pickup is limited to intake/deposit stages
+PASS Repair lifecycle certification: repair dispatch snapshot preserves exact equipment identity
+PASS Repair lifecycle certification: repair UI mirrors safe pickup and return stage controls
+PASS Repair lifecycle certification: repair accounting excludes work-order transactions from ordinary retail posting
+PASS Repair lifecycle certification: repair accounting recognizes assessment separately
+PASS Repair lifecycle certification: repair deposit posts as customer deposit liability
+PASS Repair lifecycle certification: completed repair creates service revenue and receivable/deposit application
+PASS Repair lifecycle certification: final repair payment clears repair receivable
+PASS Repair lifecycle certification: installed repair parts post COGS and inventory reduction
+PASS Repair lifecycle certification: repair refunds and concessions are mounted before legacy work-order routes
+Repair lifecycle certification OK (33 checks).
+PASS Accounting certification: ledger has explicit chart-of-account bootstrap
+PASS Accounting certification: automatic journals require exactly one debit or credit side per line
+PASS Accounting certification: automatic journals must balance
+PASS Accounting certification: automatic posting is idempotent by source type and source id
+PASS Accounting certification: existing automatic journals are revalidated against current source evidence
+PASS Accounting certification: retail posting excludes rental and repair transaction wrappers
+PASS Accounting certification: retail tender total must reconcile to transaction total
+PASS Accounting certification: retail revenue separates sales tax liability
+PASS Accounting certification: retail COGS requires preserved sale-time cost evidence
+PASS Accounting certification: retail returns use return-time preserved cost evidence rather than current catalog cost
+PASS Accounting certification: refunds first create a payable and settlement later clears it
+PASS Accounting certification: refund settlement legs must reconcile to settlement total
+PASS Accounting certification: purchase receipts debit inventory at preserved receipt cost
+PASS Accounting certification: purchase receipts clear purchasing receiving clearing
+PASS Accounting certification: supplier invoice tax treatment cannot be guessed
+PASS Accounting certification: landed costs remain in clearing until auditable allocation
+PASS Accounting certification: late landed cost allocation splits inventory still on hand from consumed COGS
+PASS Accounting certification: PO receipt and supplier invoice merchandise values are reconciled
+PASS Accounting certification: rental checkout separates refundable deposit liability from revenue
+PASS Accounting certification: rental checkout total must equal fees services deposit and tax
+PASS Accounting certification: rental return releases deposit liability and separately records adjustments
+PASS Accounting certification: negative rental settlement becomes refund payable unless it reduces AR
+PASS Accounting certification: positive rental balance without cashier settlement is not fabricated
+PASS Accounting certification: repair accounting is separated into assessment deposit service final and parts sources
+PASS Accounting certification: inventory writeoff posts tracked value only
+PASS Accounting certification: inventory writeoff never substitutes catalog cost into its journal
+PASS Accounting certification: inventory writeoff has independent financial authorization controls committed with the writeoff
+PASS Accounting certification: settlement financial guard is mounted before legacy reconciliation
+PASS Accounting certification: settlement matching uses gross electronic tender not net bank deposit
+PASS Accounting certification: settlement components enforce gross minus fees equals net
+PASS Accounting certification: settlement reconciliation compares matched source evidence to gross
+PASS Accounting certification: settlement accounting posts bank net plus fees against gross clearing
+PASS Accounting certification: drawer hardening requires authenticated employee sessions
+PASS Accounting certification: drawer opening is branch and assignment aware
+PASS Accounting certification: drawer reconciliation validates counted tender values without posting accounting journals
+PASS Accounting certification: source sync surfaces reconciliation issues and evidence gaps instead of claiming success
+Accounting financial integrity certification OK (36 checks).
+PASS RBAC/security certification: server RBAC tree defines granular financial and destructive permissions
+PASS RBAC/security certification: rental management compatibility alias does not create a new authority
+PASS RBAC/security certification: Dispatch is a first-class permission module
+PASS RBAC/security certification: Dispatch board visibility has dedicated authority
+PASS RBAC/security certification: Dispatch planning has dedicated authority
+PASS RBAC/security certification: Dispatch field execution has dedicated authority
+PASS RBAC/security certification: Dispatch administration has dedicated authority
+PASS RBAC/security certification: legacy transfer roles are compatibility-mapped only when no explicit Dispatch authority exists
+PASS RBAC/security certification: Dispatch endpoint classifier uses the logistics API boundary
+PASS RBAC/security certification: commercial department handoffs remain source-authority workflows
+PASS RBAC/security certification: source document viewing remains available to Dispatch or owning business department
+PASS RBAC/security certification: vehicle/service-zone/location administration requires Dispatch Admin
+PASS RBAC/security certification: field stages/proof/route-stop execution require Dispatch Execute
+PASS RBAC/security certification: route/job planning and assignment require Dispatch Plan
+PASS RBAC/security certification: unknown Dispatch mutations fail closed
+PASS RBAC/security certification: API keys cannot operate internal Dispatch workflows
+PASS RBAC/security certification: authorized Dispatch requests short-circuit legacy transfer permission checks
+PASS RBAC/security certification: department handoffs still continue into their original business permission checks
+PASS RBAC/security certification: API keys fail closed outside explicit integration endpoints
+PASS RBAC/security certification: unmapped employee APIs retain generic fail-closed denial
+PASS RBAC/security certification: approval employee APIs return stable safe denial code
+PASS RBAC/security certification: department approval administration returns stable safe denial code
+PASS RBAC/security certification: legacy API wildcard cannot unlock unmapped employee APIs
+PASS RBAC/security certification: API key scopes include repair portal scopes explicitly
+PASS RBAC/security certification: new API keys do not default to wildcard
+PASS RBAC/security certification: API key administration requires integration-settings authority
+PASS RBAC/security certification: API key creation requires at least one explicit valid scope
+PASS RBAC/security certification: automatic accounting sync mutations are centrally restricted to financial authority
+PASS RBAC/security certification: ledger GETs preserve reporting access
+PASS RBAC/security certification: ledger mutations require financial authority
+PASS RBAC/security certification: manual account creation cannot be performed by general report access alone
+PASS RBAC/security certification: journal creation is behind the financial mutation gate
+PASS RBAC/security certification: journal posting is behind the financial mutation gate
+PASS RBAC/security certification: journal reversal is behind the financial mutation gate
+PASS RBAC/security certification: settlement mutation excludes ordinary report-reader authority
+PASS RBAC/security certification: technician compensation summary requires salary authority
+PASS RBAC/security certification: technician pay rates require salary authority to read
+PASS RBAC/security certification: technician pay snapshots require salary authority to read
+PASS RBAC/security certification: high-value writeoffs require financial/security authorizer authority
+PASS RBAC/security certification: ordinary writeoff approval remains independently permissioned
+PASS RBAC/security certification: work-order completion remains separately signoff-permissioned
+RBAC/security certification OK (41 checks). Dispatch authority and API-key endpoint boundaries remain explicit and fail closed.
+PASS Multi-branch integrity: branch guard mounts immediately after session authentication
+PASS Multi-branch integrity: ordinary branch users are compared to default_branch_id
+PASS Multi-branch integrity: cross-branch override is limited to branch/security administrators
+PASS Multi-branch integrity: API integrations are left to explicit API-key scope/branch contracts
+PASS Multi-branch integrity: POS checkout binds normal employees to assigned branch
+PASS Multi-branch integrity: POS forces authenticated employee identity
+PASS Multi-branch integrity: POS drawer session must match employee
+PASS Multi-branch integrity: POS drawer session must match selling branch
+PASS Multi-branch integrity: inventory adjustment delegation preserves certified authority
+PASS Multi-branch integrity: direct inventory adjustment is branch-bound
+PASS Multi-branch integrity: inventory adjustment reconciles global stock from branch totals
+PASS Multi-branch integrity: repair intake is branch-bound
+PASS Multi-branch integrity: existing repair mutations use stored work-order branch
+PASS Multi-branch integrity: repair money routes are forced to work-order branch
+PASS Multi-branch integrity: repair payment transactions preserve work-order branch fallback
+PASS Multi-branch integrity: new rental agreement is branch-bound
+PASS Multi-branch integrity: rental agreement mutations use stored agreement branch
+PASS Multi-branch integrity: rental money/return routes are forced to agreement branch
+PASS Multi-branch integrity: PO physical receipt is restricted to PO receiving branch
+PASS Multi-branch integrity: PO receipt evidence persists branch_id from PO
+PASS Multi-branch integrity: write-off creation is branch-bound
+PASS Multi-branch integrity: write-off approval/rejection uses stored write-off branch
+PASS Multi-branch integrity: write-off physical stock updates exact branch
+PASS Multi-branch integrity: transfer creation requires source-branch authority
+PASS Multi-branch integrity: transfer receipt requires destination-branch authority
+PASS Multi-branch integrity: transfer source and destination must differ
+PASS Multi-branch integrity: transfer removes source branch stock
+PASS Multi-branch integrity: transfer serial identity must belong to source branch
+PASS Multi-branch integrity: transfer serial identity moves to destination branch on receipt
+PASS Multi-branch integrity: transfer valuation is reserved and received explicitly
+PASS Multi-branch integrity: automatic accounting journals preserve branch identity
+PASS Multi-branch integrity: drawer opening enforces employee default branch unless manager
+PASS Multi-branch integrity: drawer reconciliation remains tied to owning cashier or manager
+Multi-branch mutation integrity certification OK (33 checks).
+PASS POS financial runtime prerequisite: checkout mounts sale-time cost snapshot
+PASS POS financial runtime prerequisite: sale-time cost evidence preserves transaction and line identity
+PASS POS financial runtime prerequisite: refund settlement is bound to a drawer session for cash
+PASS POS financial runtime prerequisite: drawer evidence subtracts refund legs from gross tender
+PASS POS financial runtime prerequisite: refund-aware drawer evidence is mounted before legacy drawer detail
+PASS POS financial runtime prerequisite: drawer UI exposes gross, refunds and net movement
+PASS POS financial runtime prerequisite: release-gate security spec imports POS financial runtime certification
+PASS POS financial runtime prerequisite: runtime fixture creates controlled stock through stock adjustment
+PASS POS financial runtime prerequisite: runtime fixture proves branch stock decreases then restores
+PASS POS financial runtime prerequisite: runtime fixture proves cash refund is tied to the same drawer
+PASS POS financial runtime prerequisite: runtime fixture proves net drawer movement returns to zero
+PASS POS financial runtime prerequisite: runtime fixture retires temporary master records
+POS financial runtime prerequisite contract OK (12 checks). Playwright execution remains the authoritative runtime certification.
+PASS Purchasing runtime prerequisite: traceable receiving is mounted before legacy PO receiving
+PASS Purchasing runtime prerequisite: receipt initialization explicitly creates inventory valuation layers
+PASS Purchasing runtime prerequisite: valuation receipt trigger layers immutable receipt lines
+PASS Purchasing runtime prerequisite: receiving only accepts approved or partial purchase orders
+PASS Purchasing runtime prerequisite: receipt requires a receiving branch
+PASS Purchasing runtime prerequisite: receipt persists immutable quantity and cost evidence
+PASS Purchasing runtime prerequisite: receipt movement is branch-tagged
+PASS Purchasing runtime prerequisite: accounting posts receipt value to Inventory and purchasing clearing
+PASS Purchasing runtime prerequisite: supplier invoices are normalized from source evidence before journal posting
+PASS Purchasing runtime prerequisite: supplier merchandise clears only the merchandise subtotal
+PASS Purchasing runtime prerequisite: recoverable supplier tax posts to input tax recoverable
+PASS Purchasing runtime prerequisite: landed-cost components post to allocation clearing
+PASS Purchasing runtime prerequisite: nonrecoverable supplier tax posts to purchase-tax expense
+PASS Purchasing runtime prerequisite: supplier invoice total credits Accounts Payable
+PASS Purchasing runtime prerequisite: runtime helper proves no AP invoice exists before supplier invoice evidence
+PASS Purchasing runtime prerequisite: runtime helper proves receipt stock and preserved catalog cost
+PASS Purchasing runtime prerequisite: runtime helper proves receipt journal and supplier invoice journal independently
+PASS Purchasing runtime prerequisite: runtime helper proves receipt debit Inventory and credit clearing
+PASS Purchasing runtime prerequisite: runtime helper proves supplier invoice debits clearing and credits AP
+PASS Purchasing runtime prerequisite: business-integrity release suite registers purchasing runtime certification
+Purchasing runtime prerequisite OK (20 checks). Receipt valuation, merchandise clearing, supplier-tax classification, landed-cost clearing and AP separation are structurally gated.
+PASS Rental runtime prerequisite: cash checkout guard mounted before rentals
+PASS Rental runtime prerequisite: cash checkout requires employee and drawer
+PASS Rental runtime prerequisite: checkout drawer employee must match
+PASS Rental runtime prerequisite: checkout drawer branch must match rental branch
+PASS Rental runtime prerequisite: rental accounting treats deposit as liability
+PASS Rental runtime prerequisite: returned rental releases deposit liability
+PASS Rental runtime prerequisite: negative non-credit settlement creates refund payable
+PASS Rental runtime prerequisite: refund settlement requires refund permission
+PASS Rental runtime prerequisite: refund settlement refuses non-returned rentals
+PASS Rental runtime prerequisite: refund settlement enforces original tender method
+PASS Rental runtime prerequisite: cash rental refund requires open drawer
+PASS Rental runtime prerequisite: cash rental refund validates employee ownership
+PASS Rental runtime prerequisite: cash rental refund validates branch ownership
+PASS Rental runtime prerequisite: refund payout clears refund payable
+PASS Rental runtime prerequisite: refund payout credits cash or bank evidence account
+PASS Rental runtime prerequisite: drawer custody merges rental refund outflows
+PASS Rental runtime prerequisite: runtime fixture proves checkout without drawer is rejected
+PASS Rental runtime prerequisite: runtime fixture proves issue and return chain
+PASS Rental runtime prerequisite: runtime fixture proves refund payable accounting
+PASS Rental runtime prerequisite: runtime fixture proves refund payout accounting
+PASS Rental runtime prerequisite: runtime fixture proves drawer sees rental refund
+PASS Rental runtime prerequisite: business integrity gate registers rental runtime certification
+Rental runtime prerequisite OK (22 checks).
+PASS Repair runtime prerequisite: repair financial guard mounted before completion and legacy work-order routes
+PASS Repair runtime prerequisite: cash guard covers assessment deposit and final payment
+PASS Repair runtime prerequisite: cash guard requires same employee drawer
+PASS Repair runtime prerequisite: cash guard requires same work-order branch
+PASS Repair runtime prerequisite: zero-value repair payment can proceed without drawer
+PASS Repair runtime prerequisite: service evidence endpoint requires technician authority
+PASS Repair runtime prerequisite: service evidence persists diagnosis and repair notes
+PASS Repair runtime prerequisite: completion requires diagnosis and repair notes
+PASS Repair runtime prerequisite: completion requires tasks complete and attributed
+PASS Repair runtime prerequisite: completion requires latest QC pass
+PASS Repair runtime prerequisite: database QC trigger independently blocks completion without pass
+PASS Repair runtime prerequisite: QC pass requires readiness evidence
+PASS Repair runtime prerequisite: final release only occurs through final-payment path
+PASS Repair runtime prerequisite: accounting keeps assessment as service revenue
+PASS Repair runtime prerequisite: accounting keeps deposit as customer liability
+PASS Repair runtime prerequisite: completed repair recognizes service revenue and remaining receivable
+PASS Repair runtime prerequisite: final payment clears repair receivable
+PASS Repair runtime prerequisite: runtime fixture rejects deposit cash without drawer
+PASS Repair runtime prerequisite: runtime fixture records diagnosis task and QC
+PASS Repair runtime prerequisite: runtime fixture proves deposit liability service revenue AR and final clearing
+PASS Repair runtime prerequisite: runtime fixture proves customer equipment repair history reaches picked_up
+PASS Repair runtime prerequisite: business integrity release suite registers repair runtime certification
+Repair runtime prerequisite OK (22 checks). Repair end-to-end runtime proof is release-gated pending execution.
+Dispatch runtime prerequisite OK: runtime guard is mounted before logistics business router
+Dispatch runtime prerequisite OK: generic physical status bypass is blocked
+Dispatch runtime prerequisite OK: standalone assignment requires active flagged driver
+Dispatch runtime prerequisite OK: route planner uses same driver eligibility policy
+Dispatch runtime prerequisite OK: field lifecycle persists executions
+Dispatch runtime prerequisite OK: field lifecycle persists custody events
+Dispatch runtime prerequisite OK: field lifecycle persists delivery/pickup proofs
+Dispatch runtime prerequisite OK: pickup creates chain-of-custody evidence
+Dispatch runtime prerequisite OK: delivery proof requires destination arrival
+Dispatch runtime prerequisite OK: completion requires delivery proof
+Dispatch runtime prerequisite OK: completion releases custody
+Dispatch runtime prerequisite OK: completion returns standalone vehicle to available
+Dispatch runtime prerequisite OK: runtime test rejects generic completion bypass
+Dispatch runtime prerequisite OK: runtime test rejects non-driver assignment
+Dispatch runtime prerequisite OK: runtime test executes ordered field stages
+Dispatch runtime prerequisite OK: runtime test proves completion blocked before proof
+Dispatch runtime prerequisite OK: runtime test captures delivery proof and custody release
+Dispatch runtime prerequisite OK: runtime test is registered in business integrity release suite
+Dispatch field runtime prerequisites certified: 18 controls.
+Human-language UI contract OK (15 staff-facing surfaces checked; 6 employee-effort checks).
+PASS Employee assist: global search requires authentication
+PASS Employee assist: search is permission-aware
+PASS Employee assist: operational record search is branch scoped
+PASS Employee assist: shift handovers are durable
+PASS Employee assist: handover preserves author and branch
+PASS Employee assist: handover has acknowledge and resolve lifecycle
+PASS Employee assist: handover cannot resolve another branch record
+PASS Employee assist: employee UI exposes universal search
+PASS Employee assist: employee UI exposes shift handover
+PASS Employee assist: keyboard search shortcut is available
+Employee assist contract OK (10 checks).
+PASS Warehouse effort: Warehouse coordination route is mounted
+PASS Warehouse effort: Workflow uses Pick Verify Pack Stage sequence
+PASS Warehouse effort: Stages cannot be skipped
+PASS Warehouse effort: Picking checks located stock sufficiency
+PASS Warehouse effort: Coordination layer never mutates physical inventory
+PASS Warehouse effort: Warehouse progress is employee attributable
+PASS Warehouse effort: Warehouse progress is branch scoped
+PASS Warehouse effort: UI exposes exact bin guidance
+PASS Warehouse effort: UI enforces Pick Verify Pack Stage before Ship
+PASS Warehouse effort: Existing ship endpoint remains the stock-changing action
+Warehouse effort contract OK (10 checks).
+PASS fast-receiving: assistant requires purchasing_receive permission
+PASS fast-receiving: assistant scopes purchase orders to employee branch
+PASS fast-receiving: assistant is read-only coordination and does not mutate physical stock
+PASS fast-receiving: assistant exposes only GET preparation endpoints
+PASS fast-receiving: assistant returns authoritative receiving controls
+PASS fast-receiving: assistant returns authoritative serial and lot tracking profile
+PASS fast-receiving: assistant suggests the same primary bin used by stock sync
+PASS fast-receiving: receiving controls mount the assistant under purchase-order authority
+PASS fast-receiving: UI submits only to authoritative purchase-order receive endpoint
+PASS fast-receiving: UI sends an idempotency key for safe retries
+PASS fast-receiving: UI supports scanner matching by SKU or barcode
+PASS fast-receiving: UI preserves inspection and shortage exception fields
+PASS fast-receiving: UI supplies serial identity evidence for serial-tracked stock
+PASS fast-receiving: UI supplies lot identity evidence for lot-tracked stock
+PASS fast-receiving: tracked identity evidence carries the suggested bin id
+PASS fast-receiving: authenticated shell loads fast receiving
+Fast receiving contract: 16/16 checks passed
+PASS put-away: permission
+PASS put-away: branch scope
+PASS put-away: unlocated stock
+PASS put-away: restricted stock excluded
+PASS put-away: over-allocation blocked
+PASS put-away: no stock mutation
+PASS put-away: employee evidence
+PASS put-away: idempotent operation key
+PASS put-away: receiving evidence initialized
+PASS put-away: postcondition protects located totals
+PASS put-away: generic create blocked
+PASS put-away: generic create resolves actual bin branch
+PASS put-away: legacy null-branch assignment resolves physical bin branch
+PASS put-away: generic edit blocked
+PASS put-away: occupied assignment deletion blocked
+PASS put-away: authority mounted first
+PASS put-away: UI queue
+PASS put-away: UI bin guidance
+PASS put-away: UI exceptions
+PASS put-away: shell loader
+Put-away contract: 20/20 checks passed
+PASS Stock Finder: Stock Finder route exists
+PASS Stock Finder: Stock Finder is read only
+PASS Stock Finder: Stock Finder is mounted under employee assist
+PASS Stock Finder: Search requires meaningful query
+PASS Stock Finder: Branch on-hand and available quantities are separate
+PASS Stock Finder: Branch results expose exact bin guidance
+PASS Stock Finder: Incoming purchase orders expose expected date
+PASS Stock Finder: Branch-restricted staff do not receive other-branch incoming PO rows
+PASS Stock Finder: Pending transfers are included
+PASS Stock Finder: Alternatives require structured or staff-approved evidence
+PASS Stock Finder: Unverified alternatives are labeled for verification
+PASS Stock Finder: Route contains no physical stock mutation
+PASS Stock Finder: UI exposes Stock Finder
+PASS Stock Finder: UI offers view transfer and purchasing continuation
+PASS Stock Finder: Sell enhancer offers POS continuation
+PASS Stock Finder: Authenticated shell loads both Stock Finder enhancers
+Stock Finder contract OK (16 checks).
+PASS Pickup Desk: Pickup Desk route exists
+PASS Pickup Desk: Pickup Desk is read only
+PASS Pickup Desk: Pickup Desk is mounted
+PASS Pickup Desk: Ready repairs use authoritative status
+PASS Pickup Desk: Ready rentals use authoritative status
+PASS Pickup Desk: Customer contact is included
+PASS Pickup Desk: Branch scope is enforced
+PASS Pickup Desk: Waiting duration is derived
+PASS Pickup Desk: Exact record context is returned
+PASS Pickup Desk: Desk has no status mutation
+PASS Pickup Desk: UI exposes Customer Pickup Desk
+PASS Pickup Desk: UI routes through context opener
+PASS Pickup Desk: UI explains the next human action
+PASS Pickup Desk: Deferred shell loads Pickup Desk
+Customer Pickup Desk contract OK (14 checks).
+PASS Approval routing: normalized departments exist
+PASS Approval routing: manager membership is explicit
+PASS Approval routing: approval envelopes are durable
+PASS Approval routing: events are append only in application code
+PASS Approval routing: database rejects approval event updates
+PASS Approval routing: database rejects approval event deletes
+PASS Approval routing: database protects approval parents with evidence
+PASS Approval routing: fresh approval event schema does not cascade-delete evidence
+PASS Approval routing: manager authority checks branch and membership
+PASS Approval routing: manager queue derives branch authority from explicit memberships only
+PASS Approval routing: concurrent external replay handles storage contention
+PASS Approval routing: decision actor comes from session
+PASS Approval routing: API keys cannot decide
+PASS Approval routing: department administration is security controlled
+PASS Approval routing: approval routes are mounted
+PASS Approval routing: manager queue uses human language
+PASS Approval routing: Guide Me exposes approval review and setup tasks
+PASS Approval routing: approval Guide Me handles queue review and original-record authority
+PASS Approval routing: Guide Me never performs final decisions
+PASS Approval routing: shell deferred-loads approval UI and Guide Me
+PASS Approval routing: approval routes use centralized safe error responder
+PASS Approval routing: approval error layer exposes stable codes without raw database errors
+PASS Approval routing: approval routes do not return raw exception messages
+PASS Approval routing: approval UI consumes stable error codes
+Approval routing foundation contract OK (24 checks).
+OK: submission and approval share a purchasing authority adapter
+OK: purchase request submission creates normalized approval evidence
+OK: terminal purchase decisions use authenticated employee identity
+OK: purchase and approval terminal state commit in one transaction
+OK: legacy terminal status mutation is intercepted
+OK: purchase request approval guard runs before legacy routes
+OK: shared manager route keeps purchasing in fail-closed adapter registry
+OK: submitted purchasing UI routes managers to Department Approvals
+OK: purchasing approval UI guard is deferred-loaded
+OK: Guide Me uses staff language rather than architecture jargon
+Purchasing approval adapter contract OK.

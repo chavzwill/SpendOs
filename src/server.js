@@ -12,6 +12,9 @@ const { refreshLeakageCases, updateLeakageCase, verifyLeakageClosure, leakageCas
 
 const port = Number(process.env.PORT || 4010);
 const apiKey = process.env.SPENDOS_API_KEY || '';
+if (process.env.NODE_ENV === 'production' && !apiKey) {
+  throw new Error('SPENDOS_API_KEY is required when NODE_ENV=production');
+}
 const db = openStore();
 
 function send(res, status, body) {

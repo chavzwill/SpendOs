@@ -2,4 +2,8 @@
 *.db-shm
 *.db-wal
 .env
+.env.*
+!.env.example
 node_modules/
+data-*/
+uploads-*/

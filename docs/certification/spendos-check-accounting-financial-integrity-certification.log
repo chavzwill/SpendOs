@@ -1,0 +1,37 @@
+PASS Accounting certification: ledger has explicit chart-of-account bootstrap
+PASS Accounting certification: automatic journals require exactly one debit or credit side per line
+PASS Accounting certification: automatic journals must balance
+PASS Accounting certification: automatic posting is idempotent by source type and source id
+PASS Accounting certification: existing automatic journals are revalidated against current source evidence
+PASS Accounting certification: retail posting excludes rental and repair transaction wrappers
+PASS Accounting certification: retail tender total must reconcile to transaction total
+PASS Accounting certification: retail revenue separates sales tax liability
+PASS Accounting certification: retail COGS requires preserved sale-time cost evidence
+PASS Accounting certification: retail returns use return-time preserved cost evidence rather than current catalog cost
+PASS Accounting certification: refunds first create a payable and settlement later clears it
+PASS Accounting certification: refund settlement legs must reconcile to settlement total
+PASS Accounting certification: purchase receipts debit inventory at preserved receipt cost
+PASS Accounting certification: purchase receipts clear purchasing receiving clearing
+PASS Accounting certification: supplier invoice tax treatment cannot be guessed
+PASS Accounting certification: landed costs remain in clearing until auditable allocation
+PASS Accounting certification: late landed cost allocation splits inventory still on hand from consumed COGS
+PASS Accounting certification: PO receipt and supplier invoice merchandise values are reconciled
+PASS Accounting certification: rental checkout separates refundable deposit liability from revenue
+PASS Accounting certification: rental checkout total must equal fees services deposit and tax
+PASS Accounting certification: rental return releases deposit liability and separately records adjustments
+PASS Accounting certification: negative rental settlement becomes refund payable unless it reduces AR
+PASS Accounting certification: positive rental balance without cashier settlement is not fabricated
+PASS Accounting certification: repair accounting is separated into assessment deposit service final and parts sources
+PASS Accounting certification: inventory writeoff posts tracked value only
+PASS Accounting certification: inventory writeoff never substitutes catalog cost into its journal
+PASS Accounting certification: inventory writeoff has independent financial authorization controls committed with the writeoff
+PASS Accounting certification: settlement financial guard is mounted before legacy reconciliation
+PASS Accounting certification: settlement matching uses gross electronic tender not net bank deposit
+PASS Accounting certification: settlement components enforce gross minus fees equals net
+PASS Accounting certification: settlement reconciliation compares matched source evidence to gross
+PASS Accounting certification: settlement accounting posts bank net plus fees against gross clearing
+PASS Accounting certification: drawer hardening requires authenticated employee sessions
+PASS Accounting certification: drawer opening is branch and assignment aware
+PASS Accounting certification: drawer reconciliation validates counted tender values without posting accounting journals
+PASS Accounting certification: source sync surfaces reconciliation issues and evidence gaps instead of claiming success
+Accounting financial integrity certification OK (36 checks).

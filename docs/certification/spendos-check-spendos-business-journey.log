@@ -1,0 +1,6 @@
+
+> pos-system@1.0.0 check:spendos-business-journey
+> node scripts/check-accounting-journal-identity.js && node scripts/check-spendos-business-journey-runtime.js
+
+Accounting automatic journal identity OK (3 checks).
+{"ok":true,"po_value":1000,"received_value":600,"shortage_recoverable":400,"ap_offset":400,"true_payable":600,"cash_paid":0,"allocation_requested":1000,"allocation_committed":1000,"allocation_actual":600,"journals":4,"outbox":{"purchase_receipt":1,"purchase_request":1}}

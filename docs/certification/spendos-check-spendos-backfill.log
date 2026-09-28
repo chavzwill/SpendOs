@@ -1,0 +1,42 @@
+
+> pos-system@1.0.0 check:spendos-backfill
+> node scripts/check-spendos-backfill-contract.js && node scripts/check-spendos-backfill-runtime.js
+
+PASS SpendOS backfill: backfill is dry-run by default
+PASS SpendOS backfill: backfill has bounded scan limit
+PASS SpendOS backfill: backfill initializes authoritative database and cost allocation schema
+PASS SpendOS backfill: backfill inspects current purchase request items
+PASS SpendOS backfill: backfill inspects current cost allocations
+PASS SpendOS backfill: backfill detects requests with no items as unsafe
+PASS SpendOS backfill: backfill rejects invalid quantities
+PASS SpendOS backfill: backfill rejects invalid totals
+PASS SpendOS backfill: internal-use backfill requires allocation evidence
+PASS SpendOS backfill: backfill checks exact current source version
+PASS SpendOS backfill: backfill detects no SpendOS history
+PASS SpendOS backfill: backfill detects missing current version despite prior history
+PASS SpendOS backfill: backfill detects stale status snapshot
+PASS SpendOS backfill: backfill never changes current rows
+PASS SpendOS backfill: backfill never changes unsafe rows
+PASS SpendOS backfill: apply rechecks source record inside write transaction
+PASS SpendOS backfill: apply rechecks unsafe evidence before writing
+PASS SpendOS backfill: apply becomes no-op if another writer already repaired current snapshot
+PASS SpendOS backfill: stale same-version snapshot increments source version
+PASS SpendOS backfill: missing current version preserves current source version when free
+PASS SpendOS backfill: source version update and event enqueue share same transaction
+PASS SpendOS backfill: backfilled snapshot is explicitly marked
+PASS SpendOS backfill: backfill output reports current missing stale unsafe and changed counts
+PASS SpendOS backfill: backfill errors are surfaced and produce nonzero exit
+PASS SpendOS backfill: normal purchase-request event payload supports explicit backfill metadata
+PASS SpendOS backfill: status route is transactional
+PASS SpendOS backfill: status no-op does not emit duplicate SpendOS version
+PASS SpendOS backfill: status transition increments SpendOS version
+PASS SpendOS backfill: status transition writes status and version atomically
+PASS SpendOS backfill: status transition loads authoritative existing items and allocations
+PASS SpendOS backfill: status transition enqueues snapshot inside same transaction
+PASS SpendOS backfill: status transition snapshot carries new status and version
+PASS SpendOS backfill: conversion increments SpendOS version
+PASS SpendOS backfill: conversion persists converted status PO id and version together
+PASS SpendOS backfill: conversion emits converted SpendOS snapshot before commit
+PASS SpendOS backfill: conversion snapshot uses authoritative PR lines and allocations
+SpendOS backfill contract OK (36 checks).
+{"ok":true,"dry_run":{"mode":"dry_run","scanned":4,"current":1,"missing_current_snapshot":1,"stale_current_snapshot":1,"unsafe":1,"changed":0,"errors":[]},"apply":{"mode":"apply","scanned":4,"current":1,"missing_current_snapshot":1,"stale_current_snapshot":1,"unsafe":1,"changed":2,"errors":[]},"replay":{"mode":"apply","scanned":4,"current":3,"missing_current_snapshot":0,"stale_current_snapshot":0,"unsafe":1,"changed":0,"errors":[]}}

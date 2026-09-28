@@ -1,0 +1,35 @@
+
+> pos-system@1.0.0 check:spendos-guide-me
+> node scripts/check-spendos-guide-me-contract.js
+
+PASS SpendOS Guide Me: Guide Me includes supplier recovery journey
+PASS SpendOS Guide Me: supplier recovery keywords cover recoverables credit notes returns shortages and statements
+PASS SpendOS Guide Me: supplier recovery starts from Purchasing / Supplier Recoverables
+PASS SpendOS Guide Me: supplier recovery distinguishes identified exposure from confirmed money owed
+PASS SpendOS Guide Me: supplier recovery routes evidence through credit notes returns or statements
+PASS SpendOS Guide Me: supplier recovery keeps settlement in controlled workflow
+PASS SpendOS Guide Me: supplier recovery explicitly says Guide Me never creates settlement
+PASS SpendOS Guide Me: Guide Me includes supplier payment control journey
+PASS SpendOS Guide Me: supplier payment guidance starts from posted supplier bills/AP authority
+PASS SpendOS Guide Me: supplier payment guidance tells staff to review priorities and cash forecast first
+PASS SpendOS Guide Me: supplier payment guidance preserves documented discount and late-fee context
+PASS SpendOS Guide Me: supplier payment guidance routes actual payment through Record payment
+PASS SpendOS Guide Me: supplier payment guidance preserves backend recheck controls
+PASS SpendOS Guide Me: supplier payment guidance prioritizes eligible offsets before cash
+PASS SpendOS Guide Me: supplier payment guidance preserves independent finance override authority
+PASS SpendOS Guide Me: Guide Me includes operating commitment journey
+PASS SpendOS Guide Me: operating commitment keywords cover recurring expenses lease utilities software and maintenance
+PASS SpendOS Guide Me: operating commitment guidance starts from Supplier Bills & Payments
+PASS SpendOS Guide Me: operating commitment guidance reviews expected cadence allocation due and renewal evidence
+PASS SpendOS Guide Me: operating commitment guidance routes invoice evidence through Match invoice and Reconcile
+PASS SpendOS Guide Me: operating commitment guidance states matching does not change AP
+PASS SpendOS Guide Me: operating commitment guidance exposes Performance for drift and renewals
+PASS SpendOS Guide Me: exact fallback includes supplier recovery task
+PASS SpendOS Guide Me: exact fallback includes supplier payment task
+PASS SpendOS Guide Me: exact fallback includes operating commitment task
+PASS SpendOS Guide Me: fallback recovery targets real UI labels
+PASS SpendOS Guide Me: fallback payment targets real UI labels
+PASS SpendOS Guide Me: fallback commitments target match reconcile performance controls
+PASS SpendOS Guide Me: SpendOS Guide Me tasks contain no direct API or mutation call
+PASS SpendOS Guide Me: SpendOS Guide Me task copy does not imply automatic financial decisions
+SpendOS Guide Me contract OK (30 checks).

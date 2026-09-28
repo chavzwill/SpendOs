@@ -1,0 +1,58 @@
+
+> pos-system@1.0.0 check:spendos-connector
+> node --check lib/spendos-outbox.js && node --check lib/cost-allocations.js && node --check routes/purchase-requests.js && node --check routes/cost-allocations.js && node --check routes/rental-asset-lifetime-economics.js && node --check routes/spendos-management.js && node --check scripts/deliver-spendos-outbox.js && node --test tests/spendos-outbox-unit.test.js tests/cost-allocations-unit.test.js && node scripts/check-spendos-connector-runtime.js && node scripts/check-spendos-outbox-dead-letter-runtime.js && node scripts/check-spendos-outbox-operations-contract.js
+
+✔ allocations must account for the full internal-use line (0.869ms)
+✔ split allocations preserve cost targets and total (0.1474ms)
+✔ purchase event carries allocation evidence to SpendOS (0.8369ms)
+✔ partial receipt copies proportional allocation (0.3335ms)
+✔ purchase.requested event has stable identity and source version (1.847ms)
+✔ generic SpendOS events preserve real aggregate identity (0.3941ms)
+✔ enqueue is idempotency-shaped at the database boundary (0.3766ms)
+✔ retry backoff is bounded and increasing (0.1901ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2789.44
+◇ injected env (0) from .env // tip: ⌁ auth for agents [www.vestauth.com]
+{"ok":true,"eventId":"total-tools:purchase-request:1:1","delivered":1,"replayRows":1}
+◇ injected env (0) from .env // tip: ⌘ suppress logs { quiet: true }
+{"ok":true,"event_id":"total-tools:purchase-request:1:1","status":"dead_letter","attempts":2}
+PASS SpendOS outbox operations: delivery has bounded configurable max attempts
+PASS SpendOS outbox operations: default delivery max attempts is finite
+PASS SpendOS outbox operations: delivery marks terminal failure as dead letter
+PASS SpendOS outbox operations: terminal threshold uses incremented attempt count
+PASS SpendOS outbox operations: dead-letter event preserves last error
+PASS SpendOS outbox operations: dead-letter event increments attempts
+PASS SpendOS outbox operations: dead-letter event stops using backoff timestamp
+PASS SpendOS outbox operations: claim query excludes dead-letter events
+PASS SpendOS outbox operations: worker returns dead-letter result explicitly
+PASS SpendOS outbox operations: worker exits nonzero on failed or dead-letter result
+PASS SpendOS outbox operations: management route imports authoritative POS database
+PASS SpendOS outbox operations: outbox health route is protected by SpendOS management authority
+PASS SpendOS outbox operations: health counts all outbox statuses
+PASS SpendOS outbox operations: health detects stale pending rows
+PASS SpendOS outbox operations: health detects expired sending leases
+PASS SpendOS outbox operations: health detects failed rows
+PASS SpendOS outbox operations: health detects dead-letter rows
+PASS SpendOS outbox operations: health lists recent dead-letter event identity and error
+PASS SpendOS outbox operations: dead letters make health critical
+PASS SpendOS outbox operations: other stuck delivery states make health degraded
+PASS SpendOS outbox operations: health basis states operational evidence only
+PASS SpendOS outbox operations: manual requeue requires finance permission
+PASS SpendOS outbox operations: requeue requires event to exist
+PASS SpendOS outbox operations: requeue accepts only terminal dead-letter events
+PASS SpendOS outbox operations: requeue resets delivery state without changing source event identity
+PASS SpendOS outbox operations: requeue returns same existing event id
+PASS SpendOS outbox operations: UI loads outbox health with SpendOS savings workspace
+PASS SpendOS outbox operations: UI exposes delivery health status
+PASS SpendOS outbox operations: UI exposes failed dead-letter stale and expired lease metrics
+PASS SpendOS outbox operations: UI lists dead-letter error and attempts
+PASS SpendOS outbox operations: UI exposes explicit requeue action for dead letters
+PASS SpendOS outbox operations: requeue UI calls only management requeue route
+PASS SpendOS outbox operations: requeue UI reloads health after action
+SpendOS outbox operations contract OK (33 checks).

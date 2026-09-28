@@ -1,0 +1,19 @@
+# Overlay on the reviewed POS docker-compose.yml; local validation only.
+name: total-tools-spendos-local
+services:
+  app:
+    environment:
+      SPENDOS_TENANT_ID: ${SPENDOS_TENANT_ID:?Set the matching SpendOS tenant}
+      SPENDOS_INGEST_URL: ${SPENDOS_INGEST_URL:?Set the SpendOS ingest URL}
+      SPENDOS_API_KEY: ${SPENDOS_API_KEY:?Set a server-only SpendOS key}
+      SPENDOS_OUTBOX_BATCH: ${SPENDOS_OUTBOX_BATCH:-25}
+      SPENDOS_OUTBOX_MAX_ATTEMPTS: ${SPENDOS_OUTBOX_MAX_ATTEMPTS:-8}
+      POS_SETTINGS_ENCRYPTION_KEY: ${POS_SETTINGS_ENCRYPTION_KEY:?Provision the POS encryption key}
+      POS_BOOTSTRAP_ADMIN_USER: ${POS_BOOTSTRAP_ADMIN_USER:-admin}
+      POS_BOOTSTRAP_ADMIN_PASSWORD: ${POS_BOOTSTRAP_ADMIN_PASSWORD:-}
+      POS_BOOTSTRAP_ADMIN_PIN: ${POS_BOOTSTRAP_ADMIN_PIN:-}
+    ports:
+      - "127.0.0.1:33172:3001"
+    volumes:
+      - ./data-spendos-local:/app/data
+      - ./uploads-spendos-local:/app/uploads

@@ -1,0 +1,60 @@
+
+> pos-system@1.0.0 check:guided-mode
+> node scripts/check-guided-mode-contract.js
+
+PASS Guide Me: workspace loader precedes deferred guide
+PASS Guide Me: deferred guide scripts are ordered
+PASS Guide Me: single shell loader API
+PASS Guide Me: workspace loader does not own guide Next
+PASS Guide Me: orchestrator uses hardened loader directly
+PASS Guide Me: setup advances only after workspace verification
+PASS Guide Me: purchasing tab selected before setup advances
+PASS Guide Me: guide backdrop does not block workspace controls
+PASS Guide Me: guide backdrop does not blur workspace
+PASS Guide Me: guide root passes pointer interaction through
+PASS Guide Me: guide remains compact on mobile
+PASS Guide Me: exact target has strong visible outline
+PASS Guide Me: fallback target has strong visible outline
+PASS Guide Me: exact coach automatically docks away from target
+PASS Guide Me: exact coach automatically highlights live target
+PASS Guide Me: fallback coach automatically docks away from target
+PASS Guide Me: fallback never competes with hardened exact target
+PASS Guide Me: PO document context can add supplier
+PASS Guide Me: PO document context exposes supplier locations
+PASS Guide Me: PO document context separates inventory branch from ship-to
+PASS Guide Me: PO composer guides supplier
+PASS Guide Me: PO composer guides inventory branch
+PASS Guide Me: PO composer guides ship-to address
+PASS Guide Me: PO composer guides catalog item
+PASS Guide Me: PO composer guides submit action
+PASS Guide Me: completion follows live purchasing form
+PASS Guide Me: fallback covers Complete a sale
+PASS Guide Me: fallback covers Hold or recall a sale
+PASS Guide Me: fallback covers Return or refund a transaction
+PASS Guide Me: fallback covers Open or close a cash drawer
+PASS Guide Me: fallback covers Create or work a repair
+PASS Guide Me: fallback covers Create or manage a rental
+PASS Guide Me: fallback covers Dispatch, route or complete a delivery
+PASS Guide Me: fallback covers Adjust inventory
+PASS Guide Me: fallback covers Run a stock or cycle count
+PASS Guide Me: fallback covers Create or approve a purchase request
+PASS Guide Me: fallback covers Create, edit, copy, cancel or receive a PO
+PASS Guide Me: fallback covers Create, dispatch or receive a branch transfer
+PASS Guide Me: fallback covers Create or manage a quotation
+PASS Guide Me: fallback covers Run, export or print a report
+PASS Guide Me: fallback covers Review technician compensation
+PASS Guide Me: fallback covers Stock Planning & Replenishment
+PASS Guide Me: stock planning task is canonical in orchestrator
+PASS Guide Me: stock planning task is canonical in completion
+PASS Guide Me: stock planning task is canonical in role context
+PASS Guide Me: stock planning task is canonical in Guide Me catalog
+PASS Guide Me: legacy inventory intelligence task is absent
+PASS Guide Me: disabled controls retain visible text
+PASS Guide Me: quote workspace selector matches implementation
+PASS Guide Me: purchasing tab contexts are distinct
+PASS Guide Me: intended step-one navigation is not adversarially blocked
+PASS Guide Me: integrity recognizes transfer workspace
+PASS Guide Me: integrity recognizes reports workspace
+PASS Guide Me: integrity recognizes inventory intelligence
+PASS Guide Me: final CSS is served by shell
+Guide Me contract OK (55 checks).

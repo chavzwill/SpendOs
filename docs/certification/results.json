@@ -1,0 +1,37 @@
+[
+  {
+    "check": "check:spendos-connector",
+    "exitCode": 0,
+    "log": "spendos-check-spendos-connector.log"
+  },
+  {
+    "check": "check:spendos-backfill",
+    "exitCode": 0,
+    "log": "spendos-check-spendos-backfill.log"
+  },
+  {
+    "check": "check:spendos-business-journey",
+    "exitCode": 0,
+    "log": "spendos-check-spendos-business-journey.log"
+  },
+  {
+    "check": "check:spendos-guide-me",
+    "exitCode": 0,
+    "log": "spendos-check-spendos-guide-me.log"
+  },
+  {
+    "check": "check:guided-mode",
+    "exitCode": 0,
+    "log": "spendos-check-guided-mode.log"
+  },
+  {
+    "check": "check-accounting-financial-integrity-certification",
+    "exitCode": 0,
+    "log": "spendos-check-accounting-financial-integrity-certification.log"
+  },
+  {
+    "check": "check-client-syntax",
+    "exitCode": 0,
+    "log": "spendos-check-client-syntax.log"
+  }
+]
