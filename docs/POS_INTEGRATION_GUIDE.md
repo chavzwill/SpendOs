@@ -67,6 +67,22 @@ Meaning:
 
 Do not expose `SPENDOS_API_KEY` to browsers or POS clients. Keep it server-side only.
 
+### Same-machine local development
+
+Docker is not required to connect Total Tools POS to SpendOS locally. When both services run on the same Windows machine, use:
+
+```env
+SPENDOS_INGEST_URL=http://127.0.0.1:4010/v1/events
+```
+
+The SpendOS repository includes a launcher that starts both services, creates an ephemeral shared server key, uses an isolated POS database by default, provisions one-time local POS sign-in credentials on that database's first boot, runs one real outbox worker batch, and verifies authenticated SpendOS access:
+
+```powershell
+npm run start:linked-pos -- --pos-dir "C:\path\to\pos_system"
+```
+
+See `docs/POS_NODE_LOCAL_SETUP.md`. Container/Compose setup is optional and should be used only when the deployment topology itself needs container qualification.
+
 ## 4. Required event envelope
 
 Every event sent to SpendOS should use this shape:

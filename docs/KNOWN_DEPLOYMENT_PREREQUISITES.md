@@ -5,7 +5,7 @@ These items do not invalidate the code handoff, but they must be resolved or exp
 ## Already verified
 
 - SpendOS core syntax and automated tests pass.
-- 29 core tests pass.
+- 36 core tests pass.
 - The Total Tools POS connector's seven required local certification commands pass.
 - Connector tests use isolated/disposable data.
 - No live production credentials or live SpendOS endpoint were used during local certification.
@@ -15,8 +15,8 @@ These items do not invalidate the code handoff, but they must be resolved or exp
 1. **Real interoperability test**
    Run the actual POS connector against the deployed SpendOS service over the intended network path and TLS configuration. Confirm authentication, tenant handling, replay behavior and all management endpoints.
 
-2. **Container/deployment validation**
-   The prior connector validation host did not have Docker available. Render/build the intended production composition and run production preflights in the real deployment environment.
+2. **Deployment-host validation**
+   Qualify the topology that will actually be used. If production is containerized, render/build the intended Compose/container configuration and run its preflights. If production runs Node directly, qualify the service manager, secret injection, restart behavior, ingress and persistence instead. Docker is not a requirement for the Node-native deployment path.
 
 3. **Scheduler/worker operations**
    Configure a controlled recurring delivery worker for the POS outbox. Prevent uncontrolled overlapping workers and document operator recovery.

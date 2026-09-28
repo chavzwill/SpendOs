@@ -20,7 +20,9 @@ All seven commands required by the integration guide exited successfully:
 
 Node 24.19.0 was used. The connector runtime tests use local HTTP fixtures; these results establish local behavior, not interoperability with a deployed SpendOS service. Machine-readable results and complete logs are in `evidence/`.
 
-Docker was not available on this host. Container build, Compose rendering, production preflights and Docker's Node 22 runtime were **not tested**. The supplied override is a setup template, not a certified deployed configuration.
+Docker was not available on this host. Container build, Compose rendering, production preflights and Docker's Node 22 runtime were **not tested**. The supplied override remains a setup template, not a certified deployed configuration.
+
+Follow-up on 2026-09-28: the Docker-free launcher in `scripts/start-total-tools-pos-local.js` was exercised against the same POS connector worktree with a disposable SQLite database. SpendOS and POS both started, the real POS outbox worker completed successfully with an empty queue, and the launcher completed an authenticated SpendOS status check. Docker is therefore **not required** for same-machine development/integration setup.
 
 ## Files supplied
 
@@ -30,39 +32,41 @@ Docker was not available on this host. Container build, Compose rendering, produ
 
 ## Local installation procedure
 
-Use a separate POS checkout at the reviewed commit. Copy the two configuration templates there. Do not use the courier worktree or point this exercise at an operational database.
+Use a separate non-production POS checkout and database. Do not point setup verification at operational data.
 
-1. Install Docker Engine/Desktop with Compose, and follow the repository's production credential/settings-secret setup instructions. The existing entrypoint performs these preflights even for this local container. On first boot of the new local database, provision `POS_BOOTSTRAP_ADMIN_USER`, `POS_BOOTSTRAP_ADMIN_PASSWORD` (12+ characters with upper/lowercase, digit and symbol) and `POS_BOOTSTRAP_ADMIN_PIN` (6–10 digits, not repeated/common/sequential). The override passes these into the container. After successful bootstrap, remove the password/PIN from the environment and recreate the container. The legacy README's default-admin paragraph is not evidence that current preflights permit that password; do not reset a database to obtain it.
-2. Before creating secrets, add `.env.spendos.local`, `data-spendos-local/` and `uploads-spendos-local/` to that checkout's Git exclusion rules. Copy `spendos.env.example` to `.env.spendos.local`. Set an actual SpendOS ingest URL, matching tenant ID, server-only API key and a valid POS settings-encryption key. Keep the file untracked and access restricted. `localhost` inside a container names the container, not a service running on the host; use a reachable service hostname.
-3. From that checkout, render/validate the composition without printing secret values:
+### Recommended: Node-native local link
 
-   ```sh
-   docker compose --env-file .env.spendos.local -f docker-compose.yml -f compose.spendos.local.yml config --quiet
-   ```
+Docker is not required. From the SpendOS repository run:
 
-4. Once local credentials/preflights and the intended service are configured, build/start the local installation:
+```powershell
+npm run start:linked-pos -- --pos-dir "C:\path\to\pos_system"
+```
 
-   ```sh
-   docker compose --env-file .env.spendos.local -f docker-compose.yml -f compose.spendos.local.yml up -d --build
-   ```
+The launcher starts SpendOS on `127.0.0.1:4010` and the POS on `127.0.0.1:33172`, generates a shared server key in memory, injects the matching tenant/ingest settings, runs the real POS outbox worker once, and performs an authenticated SpendOS status check. See `POS_NODE_LOCAL_SETUP.md`.
 
-   The POS is bound to `http://127.0.0.1:33172`; its SQLite data lives in `data-spendos-local/` and uploads in `uploads-spendos-local/`. This command is documented, not executed by this task.
+For persistent local configuration, place the shared `SPENDOS_TENANT_ID`, `SPENDOS_INGEST_URL` and `SPENDOS_API_KEY` in the POS environment and the matching tenant/key in the SpendOS `.env`. `npm start` now loads the SpendOS `.env` automatically.
 
-5. Authenticate through POS and inspect `GET /api/spendos-management/outbox/health` using an authorized staff session. Browser clients must call POS, never receive the SpendOS server key.
-6. For a disposable dataset, inspect the backfill before deciding to apply it:
+After both services are running, authenticate through POS and inspect `GET /api/spendos-management/outbox/health` using an authorized staff session. Browser clients must call POS and must never receive the SpendOS server key.
 
-   ```sh
-   docker compose --env-file .env.spendos.local -f docker-compose.yml -f compose.spendos.local.yml exec -T --user app app node --require ./lib/local-sqlite-runtime.js scripts/backfill-spendos-purchase-requests.js
-   ```
+For a disposable POS dataset, inspect backfill before applying it:
 
-   Review unsafe/missing-allocation records. `--apply` is a separate write action and was not executed against existing data here.
-7. After creating intentional local evidence and confirming the destination, execute a single worker batch:
+```powershell
+node scripts/backfill-spendos-purchase-requests.js
+```
 
-   ```sh
-   docker compose --env-file .env.spendos.local -f docker-compose.yml -f compose.spendos.local.yml exec -T --user app app node --require ./lib/local-sqlite-runtime.js scripts/deliver-spendos-outbox.js
-   ```
+Review unsafe or missing-allocation records. `--apply` is a separate write action.
 
-   This transmits queued evidence to the configured SpendOS service. No scheduler is installed by this package. Use the same Compose/env selection for every later command, and serialize scheduled worker executions.
+Execute a single delivery batch only after confirming the destination:
+
+```powershell
+node scripts/deliver-spendos-outbox.js
+```
+
+### Optional: Docker/Compose qualification
+
+Use `compose.spendos.local.yml` and `spendos.env.example` only when container behavior itself needs qualification. A fresh production-mode POS database may require `POS_BOOTSTRAP_ADMIN_USER`, `POS_BOOTSTRAP_ADMIN_PASSWORD` and `POS_BOOTSTRAP_ADMIN_PIN`; that is a POS security preflight, not a SpendOS dependency.
+
+When Docker is used, remember that `localhost` inside the POS container is the container itself. Point `SPENDOS_INGEST_URL` at a hostname reachable from the container.
 
 ## Findings to resolve before live installation
 
@@ -70,6 +74,6 @@ Use a separate POS checkout at the reviewed commit. Copy the two configuration t
 - The worker and management proxy accept an absent bearer key. Production configuration must require authentication; the supplied override requires a nonempty key.
 - Worker/proxy fetch calls have no explicit application timeout. The worker uses a two-minute lease but has no lease-owner token guarding completion updates. A slow request can outlive its lease. Receiver deduplication remains mandatory; overlapping workers and timeout/reconciliation behavior need further qualification before live scheduling.
 - Receiver tenant authorization, immutable-event deduplication and the full expected management API have not been tested against a real SpendOS service.
-- Docker preflights, secrets provisioning, backups, scheduler and operator permissions remain installation prerequisites. This package does not claim production readiness merely because the local guide checks pass.
+- Deployment-host preflights, persistent secret provisioning, backups, scheduler and operator permissions remain production prerequisites. Docker-specific preflights apply only when the chosen production topology uses containers.
 
 POS remains authoritative for all financial and operational decisions. SpendOS supplies analytics/advice and must not directly mutate POS stock, AP, payments or journals.

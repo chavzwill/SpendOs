@@ -6,7 +6,7 @@ SpendOS is a standalone spend-intelligence and control service that connects to 
 
 Prepared for handoff on 2026-09-28.
 - Core qualification: `npm run check` passes.
-- Automated tests: 35/35 passing.
+- Automated tests: 36/36 passing.
 - Total Tools POS connector certification: 7/7 required gates passing.
 - Git working tree is intended to be clean at handoff.
 - Production deployments must complete the prerequisites in `docs/KNOWN_DEPLOYMENT_PREREQUISITES.md`.
@@ -60,13 +60,19 @@ Opening the dashboard is read-only. Savings analysis runs only when a user inten
 
 ```powershell
 Copy-Item .env.example .env
-$env:PORT="4010"
-$env:SPENDOS_API_KEY="replace-with-a-strong-server-only-key"
-$env:SPENDOS_DB="./spendos.db"
-node src/server.js
+# Edit .env, then:
+npm start
 ```
 
-The service binds to `127.0.0.1` by default. Put it behind an authenticated TLS reverse proxy or equivalent production ingress.
+`npm start` automatically loads the repository-root `.env` when it exists. The service binds to `127.0.0.1` by default. Put it behind an authenticated TLS reverse proxy or equivalent production ingress.
+
+For a Docker-free Total Tools POS integration on one development machine:
+
+```powershell
+npm run start:linked-pos -- --pos-dir "C:\path\to\pos_system"
+```
+
+See `docs/POS_NODE_LOCAL_SETUP.md` for the exact local-link behavior and production boundary.
 
 ### Authentication
 
@@ -109,6 +115,7 @@ Core route families include:
 Start here:
 - `HANDOFF.md` — takeover sequence, scope and acceptance state.
 - `docs/POS_INTEGRATION_GUIDE.md` — full POS integration contract and instructions for a developer or AI agent.
+- `docs/POS_NODE_LOCAL_SETUP.md` — Docker-free local Total Tools POS + SpendOS startup and verification.
 - `docs/POS_LOCAL_VALIDATION.md` — isolated Total Tools POS connector validation report.
 - `docs/certification/` — machine-readable results and complete certification logs.
 - `docs/KNOWN_DEPLOYMENT_PREREQUISITES.md` — remaining production installation requirements.
