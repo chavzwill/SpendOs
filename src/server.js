@@ -11,7 +11,7 @@ const { targetCostSummary, targetPortfolio, allocationCoverage, targetTrend } = 
 const { recordAction, verifyOpportunity, opportunityLifecycle, verifiedSavingsRollup } = require('./savings-lifecycle');
 const { upsertSavingsTarget, savingsTargetPerformance, savingsAccountabilityAttention } = require('./savings-targets');
 const { savingsLeakageAnalysis } = require('./savings-leakage');
-const { refreshLeakageCases, updateLeakageCase, verifyLeakageClosure, leakageCaseDetail } = require('./savings-leakage-cases');
+const { refreshLeakageCases, listLeakageCases, updateLeakageCase, verifyLeakageClosure, leakageCaseDetail } = require('./savings-leakage-cases');
 const { createUiAuth, safeEqual } = require('./ui-auth');
 
 const port = Number(process.env.PORT || 4010);
@@ -220,6 +220,9 @@ const server = http.createServer((req, res) => {
   }
 
   const leakageCasesMatch = req.url.match(/^\/v1\/savings\/leakage\/cases\?tenantId=([^&]+)$/);
+  if (req.method === 'GET' && leakageCasesMatch) {
+    return send(res,200,listLeakageCases(db,decodeURIComponent(leakageCasesMatch[1])));
+  }
   if (req.method === 'POST' && leakageCasesMatch) {
     return send(res,200,refreshLeakageCases(db,decodeURIComponent(leakageCasesMatch[1])));
   }

@@ -50,3 +50,11 @@ test('read-only dashboard endpoints do not invent savings or budgets',async()=>{
   assert.equal(db.prepare('SELECT COUNT(*) c FROM savings_opportunities').get().c,before.opportunities);
   assert.equal(db.prepare('SELECT COUNT(*) c FROM budgets').get().c,before.budgets);
 });
+
+test('leakage case listing is read-only and tenant-scoped',async()=>{
+  const before=db.prepare('SELECT total_changes() n').get().n;
+  const response=await fetch(`${base}/v1/savings/leakage/cases?tenantId=total-tools`);
+  assert.equal(response.status,200);
+  assert.deepEqual(await response.json(),[]);
+  assert.equal(db.prepare('SELECT total_changes() n').get().n,before);
+});
