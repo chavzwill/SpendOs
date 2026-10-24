@@ -14,6 +14,7 @@ const { savingsLeakageAnalysis } = require('./savings-leakage');
 const { refreshLeakageCases, updateLeakageCase, verifyLeakageClosure, leakageCaseDetail } = require('./savings-leakage-cases');
 const { createUiAuth, safeEqual } = require('./ui-auth');
 const { requestSpendAdvisory } = require('./tt-ai-client');
+const { selectSingleCurrencyCostTrend } = require('./tt-ai-cost-selection');
 
 const port = Number(process.env.PORT || 4010);
 const apiKey = process.env.SPENDOS_API_KEY || '';
@@ -159,17 +160,21 @@ const server = http.createServer((req, res) => {
           'building','project','supplier','overhead'].includes(targetType||'')) {
       return send(res,400,{error:'invalid_advice_target'});
     }
-    const trend=targetTrend(db,tenantId,targetType);
-    const observed=trend.find(row=>String(row.targetId||'')===targetId);
-    if(!observed || !/^[A-Za-z]{3}$/.test(String(observed.currency||''))) {
-      return send(res,404,{error:'cost_evidence_unavailable'});
-    }
+    const resolved=selectSingleCurrencyCostTrend(
+      targetTrend(db,tenantId,targetType),targetId
+    );
+    if(resolved.state==='not_found')return send(res,404,{error:'cost_evidence_unavailable'});
+    if(resolved.state==='multi_currency_review_required')
+      return send(res,409,{error:'multi_currency_cost_review_required'});
+    if(resolved.state!=='resolved')return send(res,422,{error:'cost_evidence_invalid'});
+    const observed=resolved.row;
     requestSpendAdvisory({
       tenantId,
       target:{
         type:targetType,id:targetId,currency:observed.currency,
         currentPeriodCost:observed.trailing30dCost,
         previousPeriodCost:observed.prior30dCost,
+        incompleteActualLines:observed.incompleteActualLines,
       }
     }).then(result=>send(res,200,{
       ...result,sourceSystem:'spendos',

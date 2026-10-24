@@ -136,3 +136,12 @@ No automatic connection is enabled. Backend-only variables:
 **Safety:** Existing SpendOS management authentication currently permits a broad admin API key or management session, not employee-granular financial permissions. Do not expose this endpoint to general POS or SmartCommerce users until fine-grained staff permissions are enforced. The endpoint returns `cost_evidence_unavailable` for unknown targets; it never fabricates figures. TT AI validates the app/tenant/request signature and explicitly labels finance data as caller-supplied rather than independently checked.
 
 Run `node --test tests/tt-ai-client.test.js` and the repository's complete `npm run check` on its required **Node.js 24+** runtime before enabling this bridge. This is a draft integration; no secrets or remote infrastructure were configured.
+
+
+### Finance evidence safety — signed advisory hardening
+
+SpendOS never mixes expense lines in different currencies for the same target. `/v1/ai/cost-advice` returns HTTP 409 `multi_currency_cost_review_required` when `targetTrend` contains more than one currency for the requested target. It returns HTTP 422 on nonfinite/negative period costs, bad currency, or missing/noninteger valuation status. No invented FX conversion or zero-value backfill is used.
+
+Every TT AI advisory receives the `incompleteActualLines` count derived from SpendOS allocation facts and reports `evidenceCompleteness` to the finance reviewer. An incomplete valuation is a data-quality alert, **not** verified savings, paid finance state or actionable approval. This integration is restricted to the existing SpendOS management authentication pending finer-grained financial RBAC.
+
+Focused offline checks are in `tests/tt-ai-cost-selection.test.js` and `tests/tt-ai-client.test.js`. Node >=24 is still needed for the full SpendOS release suite; the new bridge remains a draft until the signed TT AI service is reachable over a secured approved network.
