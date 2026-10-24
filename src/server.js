@@ -13,6 +13,7 @@ const { upsertSavingsTarget, savingsTargetPerformance, savingsAccountabilityAtte
 const { savingsLeakageAnalysis } = require('./savings-leakage');
 const { refreshLeakageCases, updateLeakageCase, verifyLeakageClosure, leakageCaseDetail } = require('./savings-leakage-cases');
 const { createUiAuth, safeEqual } = require('./ui-auth');
+const { requestSpendAdvisory } = require('./tt-ai-client');
 
 const port = Number(process.env.PORT || 4010);
 const apiKey = process.env.SPENDOS_API_KEY || '';
@@ -141,6 +142,44 @@ const server = http.createServer((req, res) => {
   }
 
   if (!managementAuthorized(req)) return send(res, 401, { error: 'unauthorized' });
+
+  // Read-only TT AI financial advisory. The tenant is pinned to the server's
+  // configured tenant, not trusted from arbitrary query parameters. Financial
+  // aggregates remain sourced from SpendOS and financial writes remain here.
+  if (req.method === 'GET' && String(req.url||'').startsWith('/v1/ai/cost-advice?')) {
+    let url;
+    try {url=new URL(req.url,'http://spendos.internal');}
+    catch {return send(res,400,{error:'invalid_advice_query'});}
+    const tenantId=url.searchParams.get('tenantId');
+    const targetType=url.searchParams.get('targetType');
+    const targetId=url.searchParams.get('targetId');
+    if(tenantId!==configuredTenantId) return send(res,403,{error:'tenant_forbidden'});
+    if(!targetId||targetId.length>128
+        || !['branch','department','rental_asset','asset','vehicle','equipment',
+          'building','project','supplier','overhead'].includes(targetType||'')) {
+      return send(res,400,{error:'invalid_advice_target'});
+    }
+    const trend=targetTrend(db,tenantId,targetType);
+    const observed=trend.find(row=>String(row.targetId||'')===targetId);
+    if(!observed || !/^[A-Za-z]{3}$/.test(String(observed.currency||''))) {
+      return send(res,404,{error:'cost_evidence_unavailable'});
+    }
+    requestSpendAdvisory({
+      tenantId,
+      target:{
+        type:targetType,id:targetId,currency:observed.currency,
+        currentPeriodCost:observed.trailing30dCost,
+        previousPeriodCost:observed.prior30dCost,
+      }
+    }).then(result=>send(res,200,{
+      ...result,sourceSystem:'spendos',
+      periodType:'trailing_30_days_vs_prior_30_days',
+      upstreamEvidenceVerifiedByTTAI:false,
+    })).catch(error=>send(res,error.status||502,{
+      error:error.code||'SPENDOS_TT_AI_UNAVAILABLE',
+    }));
+    return;
+  }
 
   const systemStatusMatch = req.url.match(/^\/v1\/system\/status\?tenantId=([^&]+)$/);
   if (req.method === 'GET' && systemStatusMatch) {

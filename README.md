@@ -123,3 +123,16 @@ Local SQLite files, WAL/SHM files, populated environment files and `node_modules
 This repository contains the SpendOS analytical service/API core. The Total Tools POS repository contains the authoritative operational workflows, transactional outbox, employee permissions and POS-facing management proxy/UI integration.
 
 See `HANDOFF.md` before changing authority boundaries or declaring a deployment live.
+
+## TT AI shared intelligence (draft, not deployed)
+
+The optional `GET /v1/ai/cost-advice?tenantId=total-tools&targetType=rental_asset&targetId=...` endpoint runs **after** existing SpendOS management authentication and rejects other tenants. It computes a trailing-30-day vs prior-30-day actual-cost aggregate from SpendOS's own cost-economics data, sends **only** those bounded values via a short-lived Ed25519-signed request to the TT AI service, and returns advisory results. It cannot create spending events, payables, journals, savings actions or payments.
+
+No automatic connection is enabled. Backend-only variables:
+- `SPENDOS_TT_AI_URL`: approved HTTPS/private TT AI service origin.
+- `SPENDOS_TT_AI_SIGNING_PRIVATE_KEY`: unique SpendOS Ed25519 private PEM, never sent to the browser or committed.
+- `SPENDOS_TENANT_ID`: existing Total Tools tenant scope; must match TT AI's trusted-client registration.
+
+**Safety:** Existing SpendOS management authentication currently permits a broad admin API key or management session, not employee-granular financial permissions. Do not expose this endpoint to general POS or SmartCommerce users until fine-grained staff permissions are enforced. The endpoint returns `cost_evidence_unavailable` for unknown targets; it never fabricates figures. TT AI validates the app/tenant/request signature and explicitly labels finance data as caller-supplied rather than independently checked.
+
+Run `node --test tests/tt-ai-client.test.js` and the repository's complete `npm run check` on its required **Node.js 24+** runtime before enabling this bridge. This is a draft integration; no secrets or remote infrastructure were configured.
